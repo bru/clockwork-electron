@@ -1,0 +1,10 @@
+{
+        "name": "clockwork-electron",
+        "version": "0.0.1",
+        "description": "",
+        "devDependencies": {
+                "grunt": "^1.0.0",
+                "grunt-download-electron": "^2.1.4",
+                "closurecompiler-externs": "^1.0.4"
+        }
+}

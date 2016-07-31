@@ -13,3 +13,9 @@ node_modules/*
 *.ipr
 *.iws
 electron/*
+figwheel_server.log
+
+# let's ignore the `app` folder for now
+app/*
+
+TODOs.org
