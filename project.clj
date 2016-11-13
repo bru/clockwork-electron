@@ -8,6 +8,7 @@
                  [org.clojure/core.async "0.2.385"]
                  [figwheel "0.5.8"]
                  [reagent "0.6.0"]
+                 [re-frame "0.8.0"]
                  [ring/ring-core "1.5.0"]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
                  [reagent-forms "0.5.28"]
