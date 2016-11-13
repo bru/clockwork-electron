@@ -29,22 +29,12 @@
 (defn read-clock []
   (u/get-timestamp (get-clock)))
 
-(defn set-active-day [date]
-  (swap! db
-         assoc-in [:active-day] date))
-
 (defn get-active-day []
   (:active-day @db))
 
-(defn goto-previous-day []
-  (let [current-day (get-active-day)
-        previous-day (time/minus current-day (time/days 1))]
-    (set-active-day previous-day)))
-
-(defn goto-next-day []
-  (let [current-day (get-active-day)
-        next-day (time/plus current-day (time/days 1))]
-    (set-active-day next-day)))
+(defn set-active-day [date]
+  (swap! db
+         assoc-in [:active-day] date))
 
 ;; low level timeslip operations
 ;; most of these could be refactored further so that we have just
@@ -55,6 +45,51 @@
 
 (defn write-timeslips [timeslips]
   (swap! db assoc :timeslips timeslips))
+
+;; timeslip file storage
+
+(defn timeslips-file [clock]
+  (let [data-path (.getPath app "userData")
+        year (time/year clock)
+        week (time/week-number-of-year clock)
+        filename (str year "-" week "-timeslips.edn")]
+    (.resolve path data-path filename)))
+
+(defn load-timeslips []
+  (let [file (timeslips-file (get-active-day))
+        _ (println (str "Loading from " file))]
+    (.readFile fs file
+               (fn [err data]
+                 (let [d (if (nil? data) {} data)
+                       new-timeslips (edn/read-string (str d))]
+                   (write-timeslips new-timeslips))))))
+
+(defn save-timeslips []
+  (let [file (timeslips-file (get-active-day))]
+    (.writeFile fs file (read-timeslips))))
+
+
+(defn handle-date-change [date]
+  (let [obsolete-day (get-active-day)
+        obsolete-week (when obsolete-day (time/week-number-of-year obsolete-day))
+        week (time/week-number-of-year date)]
+    (save-timeslips)
+    (set-active-day date)
+    (when (not= week obsolete-week)
+      (load-timeslips))))
+
+(defn goto-previous-day []
+  (let [current-day (get-active-day)
+        previous-day (time/minus current-day (time/days 1))]
+    (handle-date-change previous-day)))
+
+(defn goto-today []
+  (handle-date-change (time/today)))
+
+(defn goto-next-day []
+  (let [current-day (get-active-day)
+        next-day (time/plus current-day (time/days 1))]
+    (handle-date-change next-day)))
 
 ;; higher level timeslip operations
 
@@ -98,7 +133,8 @@
 
 (defn add-timeslip [timeslip]
   (let [timeslips (read-timeslips)
-        id (inc (last (sort (keys timeslips))))
+        ;id (inc (last (sort (keys timeslips))))
+        id (read-clock)
         timeslip (assoc timeslip :id id)
         new-timeslips (assoc timeslips id timeslip)]
     (stop-all-timeslips)
@@ -128,26 +164,6 @@
     (when (and (not active?) (not (s/blank? clock-input)))
       (set-timeslip-clock id clock-input))
     (update-timeslip id :edit? false)))
-
-;; timeslip file storage
-
-(defn timeslips-file [clock]
-  (let [data-path (.getPath app "userData")
-        year (time/year clock)
-        week (time/week-number-of-year clock)
-        filename (str year "-" week "-timeslips.edn")]
-    (.resolve path data-path filename)))
-
-(defn load-timeslips []
-  (.readFile fs (timeslips-file (get-active-day))
-             (fn [err data]
-               (let [d (if (nil? data) {} data)
-                     timeslips (edn/read-string (str d))]
-                 (write-timeslips timeslips)))))
-
-(defn save-timeslips []
-  (let [file (timeslips-file (get-active-day))]
-    (.writeFile fs file (read-timeslips))))
 
 ;; state and periodic tasks
 (defonce init-db
