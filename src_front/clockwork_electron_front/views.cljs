@@ -3,9 +3,10 @@
             [cljs.nodejs :as nodejs]
             [clojure.string :as s]
             [clockwork-electron-front.timeslips :as t]
-            [clockwork-electron-front.db :refer [subscribe]]
             [cljs-time.core :as time]
-            [clockwork-electron-front.utils :as u]))
+            [clockwork-electron-front.utils :as u]
+            [re-frame.core :refer [subscribe dispatch]]
+            ))
 
 (def Electron (nodejs/require "electron"))
 (def remote (.-remote Electron))
@@ -43,30 +44,31 @@
             :on-click save} "Start"]]])))
 
 (defn head-row []
-  (let [date (subscribe [:active-day]); (t/get-active-day) ; (subscribe [:active-day]); 
-        weekday (nth u/weekdays (- (time/day-of-week @date) 1))
-        month-number (- (time/month @date) 1)
-        month (nth u/months month-number)
-        day (time/day @date)]
-    [:div.row
-     [:div.col-sm-4
-      [:h2 (str weekday " ")
-       [:small (str day " " month)]]
-      [:div.btn-group {:role "group"}
-       [:button.btn.btn-default
-        {:type "button"
-         :on-click #(t/goto-previous-day)}
-        [:span.glyphicon.glyphicon-backward {:aria-hidden true}]]
-       [:button.btn.btn-default
-        {:type "button"
-         :on-click #(t/set-active-day (time/today))}
-        [:span "Today"]]
-       [:button.btn.btn-default
-        {:type "button"
-         :on-click #(t/goto-next-day)}
-        [:span.glyphicon.glyphicon-forward {:aria-hidden true}]]]]
-     [:div.col-sm-8
-      [new-timeslip-form]]]))
+  (let [date (subscribe [:active-day])]
+    (fn []
+      (let [weekday (nth u/weekdays (- (time/day-of-week @date) 1))
+            month-number (- (time/month @date) 1)
+            month (nth u/months month-number)
+            day (time/day @date)]
+        [:div.row
+         [:div.col-sm-4
+          [:h2 (str weekday " ")
+           [:small (str day " " month)]]
+          [:div.btn-group {:role "group"}
+           [:button.btn.btn-default
+            {:type "button"
+             :on-click #(dispatch [:goto-previous-day])}
+            [:span.glyphicon.glyphicon-backward {:aria-hidden true}]]
+           [:button.btn.btn-default
+            {:type "button"
+             :on-click #(dispatch [:goto-today])}
+            [:span "Today"]]
+           [:button.btn.btn-default
+            {:type "button"
+             :on-click #(dispatch [:goto-next-day])}
+            [:span.glyphicon.glyphicon-forward {:aria-hidden true}]]]]
+         [:div.col-sm-8
+          [new-timeslip-form]]]))))
 
 (defn toggle-button [id active?]
   (let [icon-label (if active? "Stop" "Start")
