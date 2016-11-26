@@ -60,18 +60,14 @@
    (assoc cofx :current-day (time/today))))
 
 (re-frame/reg-cofx
- :load-timeslips
+ :active-timeslips
  (fn [cofx _]
-   "Load timeslips"
-   (let [data-path (.getPath app "userData")
-         clock (:clock cofx)
-         year (time/year clock)
-         week (time/week-number-of-year clock)
-         filename (str year "-" week "-timeslips.edn")
-         file (.resolve filepath data-path filename)
-         timeslip-data (.readFileSync fs file)
-         timeslips (edn/read-string (str (if (nil? timeslip-data) {} timeslip-data)))]
+   "Get timeslips for week including active day"
+   (let [day (:active-day (:db cofx))
+         timeslips (load-timeslips day)]
      (assoc cofx :timeslips timeslips))))
 
-(defn subscribe [path]
-  (r/cursor db path))
+(re-frame/reg-fx
+ :timeslips->file
+ (fn [[ timeslips active-day ]]
+   (save-timeslips timeslips active-day)))
