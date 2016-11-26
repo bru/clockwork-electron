@@ -21,6 +21,28 @@
   {:timeslips {}
    :clock nil})
 
+(defn timeslips-file [day]
+  "Build the filename for this day"
+  (let [data-path (.getPath app "userData")
+        year (time/year day)
+        week (time/week-number-of-year day)
+        filename (str year "-" week "-timeslips.edn")]
+    (.resolve filepath data-path filename)))
+
+(defn load-timeslips [day]
+  "Load timeslips for a given day"
+  (let [file (timeslips-file day)
+        timeslip-data (try
+                        (.readFileSync fs file)
+                        (catch js/Error e nil))]
+    (edn/read-string (str (if (nil? timeslip-data) {} timeslip-data)))))
+
+(defn save-timeslips [timeslips day]
+  "Save the timeslips to the right file"
+  (let [file (timeslips-file day)]
+    (try
+      (.writeFileSync fs file timeslips)
+      (catch js/Error e nil))))
 
 ;; CO-EFFECTS --------------------------
 
