@@ -10,6 +10,12 @@
              [clockwork-electron-front.views :as views]
              ))
 
+(defonce timeslips-updater
+  (js/setInterval #(dispatch [:update-clock]) 1000))
+
+(defonce timeslips-saver
+  (js/setInterval #(dispatch [:save-timeslips]) 10000))
+
 (defn root-component []
   [:div {:class "page"}
    [navigation/main]
