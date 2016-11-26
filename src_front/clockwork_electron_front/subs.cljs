@@ -1,7 +1,11 @@
 (ns clockwork-electron-front.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]
-            [cljs-time.core :as time]
-            [cljs-time.coerce :as ft]))
+            [cljs-time.core :as time]))
+
+(reg-sub
+ :db
+ (fn [db _]
+   db))
 
 (reg-sub
  :active-day
@@ -14,16 +18,18 @@
    (:timeslips db)))
 
 (reg-sub
+ :clock
+ (fn [db _]
+   (:clock db)))
+
+(reg-sub
  :active-day-timeslips
  (fn [query-v _]
    [(subscribe [:timeslips])
     (subscribe [:active-day])])
 
  (fn [[timeslips active-day] _]
-   (let [start-time (time/at-midnight (ft/to-date-time active-day))
-         end-time (time/plus start-time (time/days 1))
-         timeslips (vals timeslips)]
-     (filter #(time/within? start-time
-                            end-time
-                            (ft/from-long (* 1000 (:updated-at %))))
+   (let [timeslips (if (nil? timeslips) [] (vals timeslips))
+         day (str active-day)]
+     (filter #(= day (:day %))
              timeslips))))
