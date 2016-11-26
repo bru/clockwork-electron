@@ -4,9 +4,7 @@
              [clockwork-electron-front.db]
              [clockwork-electron-front.events]
              [clockwork-electron-front.subs]
-             ; [clockwork-electron-front.events]
              [clockwork-electron-front.navigation :as navigation]
-             [clockwork-electron-front.timeslips :as timeslips]
              [clockwork-electron-front.views :as views]
              ))
 
