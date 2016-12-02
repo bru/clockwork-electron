@@ -11,7 +11,6 @@
                  [re-frame "0.8.0"]
                  [ring/ring-core "1.5.0"]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
-                 [reagent-forms "0.5.28"]
                  [binaryage/devtools "0.8.2"]]
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-externs "0.1.6"]
