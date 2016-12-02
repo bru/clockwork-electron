@@ -1,8 +1,8 @@
 # clockwork-electron
 
-This project build by descjop v0.6.3
+As presented at Clojure eXchange 2016
 
-FIXME: description
+Find the slides in the `doc/` folder
 
 ## Requirements
 
@@ -31,28 +31,6 @@ and you can use alias in project directory.
 $ lein descjop-help
 ```
 
-## New project from leiningen template
-
-### Minimum project
-
-```
-$ lein new descjop YOUR_APP_NAME
-$ cd YOUR_APP_NAME
-```
-
-### [Om](https://github.com/omcljs/om) based project
-
-```
-$ lein new descjop YOUR_APP_NAME +om
-$ cd YOUR_APP_NAME
-```
-
-### [reagent](https://github.com/reagent-project/reagent) based project
-
-```
-$ lein new descjop YOUR_APP_NAME +reagent
-$ cd YOUR_APP_NAME
-```
 
 ## Project Directory
 
