@@ -115,13 +115,17 @@ you have to change `src/PROJECT_NAME/core.cljs` about `:companyName` and `submit
 
 ### step 3
 
+```
+run cljsbuild `lein descjop-once.
+```
+
 and run extern alias `descjop-externs`,
 
 ```
 $ lein descjop-externs
 ```
 
-run cljsbuild `lein descjop-once`.
+
 
 ```
 $ lein descjop-once
