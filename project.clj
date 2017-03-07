@@ -95,7 +95,8 @@
                                               ;; advanced compile (prod)
                                               ;;:optimizations :advanced
 
-                                              ;;:source-map "app/dev/js/test.js.map"
+                                              :source-map true
+                                              :source-map-timestamp true
                                               :pretty-print true
                                               :output-wrapper true}}
                        :prod-main {:source-paths ["src"]
