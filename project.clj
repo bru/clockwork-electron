@@ -4,18 +4,19 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.89" :exclusions [org.apache.ant/ant]]
-                 [org.clojure/core.async "0.2.385"]
-                 [figwheel "0.5.8"]
+                 [org.clojure/clojurescript "1.9.473" :exclusions [org.apache.ant/ant]]
+                 [org.clojure/core.async "0.2.395"]
+                 [figwheel "0.5.9"]
                  [reagent "0.6.0"]
-                 [re-frame "0.8.0"]
+                 [re-frame "0.9.2"]
                  [ring/ring-core "1.5.0"]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
-                 [binaryage/devtools "0.8.2"]]
-  :plugins [[lein-cljsbuild "1.1.3"]
+                 [binaryage/devtools "0.8.2"]
+                 ]
+  :plugins [[lein-cljsbuild "1.1.5"]
             [lein-externs "0.1.6"]
             [lein-shell "0.5.0"]
-            [lein-figwheel "0.5.8" :exclusions [org.clojure/core.cache]]]
+            [lein-figwheel "0.5.9" :exclusions [org.clojure/core.cache]]]
   :source-paths ["src_tools"]
   :aliases {"descjop-help" ["new" "descjop" "help"]
             "descjop-init" ["do"
@@ -46,7 +47,13 @@
                                 ["cljsbuild" "once" "dev-front"]]
             "descjop-once-prod" ["do"
                                  ["cljsbuild" "once" "prod-main"]
-                                 ["cljsbuild" "once" "prod-front"]]}
+                                 ["cljsbuild" "once" "prod-front"]]
+            ;; electron packager for production
+            "descjop-uberapp-osx" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=darwin" "--arch=x64" "--electron-version=1.3.3"]
+            "descjop-uberapp-app-store" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=mas" "--arch=x64" "--electron-version=1.3.3"]
+            "descjop-uberapp-linux" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=linux" "--arch=x64" "--electron-version=1.3.3"]
+            "descjop-uberapp-win64" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=x64" "--electron-version=1.3.3"]
+            "descjop-uberapp-win32" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=ia32" "--electron-version=1.3.3"]}
   :hooks [leiningen.cljsbuild]
   :cljsbuild {:builds {:dev-main {:source-paths ["src"]
                                   :incremental true
