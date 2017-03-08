@@ -205,8 +205,10 @@
 (defn debug-db []
   (let [db (subscribe [:db])]
     (fn []
-      [:div.debug-db
-        (str @db)])))
+      [:div.row.debug-db
+       [:pre
+        [:code.clojure
+         (with-out-str (cljs.pprint/pprint @db))]]])))
 
 (defn today []
   [:div.container
