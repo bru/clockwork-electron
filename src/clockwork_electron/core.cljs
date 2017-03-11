@@ -41,7 +41,7 @@
 (nodejs/enable-util-print!)
 
 ;;; "Linux" or "Darwin" or "Windows_NT"
-(.log js/console (str "Start descjop application on " (.type Os) "."))
+(.log js/console (str "Start Clockwork application on " (.type Os) "."))
 
 
 (set! *main-cli-fn* -main)
