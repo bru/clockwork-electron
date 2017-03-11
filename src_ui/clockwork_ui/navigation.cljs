@@ -1,6 +1,6 @@
-(ns clockwork-electron-front.navigation)
+(ns clockwork-ui.navigation)
 
-(defn main []
+(defn main [env]
   [:nav {:class "navbar navbar-default navbar-fixed-top"}
    [:div {:class "container"}
     [:div {:class "navbar-header"}

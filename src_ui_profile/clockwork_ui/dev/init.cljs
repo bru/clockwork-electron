@@ -1,7 +1,7 @@
-(ns clockwork-electron-front.init
+(ns clockwork-ui.init
   (:require [figwheel.client :as fw :include-macros true]
-            [clockwork-electron-front.core :as core]
-            [clockwork-electron-front.conf :as conf]
+            [clockwork-ui.core :as core]
+            [clockwork-ui.conf :as conf]
             [devtools.core :as devtools]
             ))
 

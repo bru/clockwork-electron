@@ -1,4 +1,4 @@
-(ns clockwork-electron-front.utils)
+(ns clockwork-ui.utils)
 
 ;; generic javascript events helpers
 (defn event-val [event]

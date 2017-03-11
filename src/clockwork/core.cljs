@@ -1,4 +1,4 @@
-(ns clockwork-electron.core
+(ns clockwork.core
     (:require [cljs.nodejs :as nodejs]))
 
 (def path (nodejs/require "path"))

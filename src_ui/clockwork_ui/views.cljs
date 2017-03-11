@@ -1,10 +1,10 @@
-(ns clockwork-electron-front.views
+(ns clockwork-ui.views
   (:require [reagent.core :as r]
             [cljs.nodejs :as nodejs]
             [clojure.string :as s]
             [cljs-time.core :as time]
             [cljs-time.coerce :as ft]
-            [clockwork-electron-front.utils :as u]
+            [clockwork-ui.utils :as u]
             [re-frame.core :refer [subscribe dispatch]]
             [cljs.pprint :refer [pprint]]
             ))
@@ -211,8 +211,9 @@
         [:code.clojure
          (with-out-str (pprint @db))]]])))
 
-(defn today []
+(defn today [env]
   [:div.container
    [head-row]
    [timeslips-table]
-   [debug-db]])
+   (when (= "dev" env)
+     [debug-db])])

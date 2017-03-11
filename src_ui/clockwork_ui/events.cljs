@@ -1,11 +1,11 @@
-(ns clockwork-electron-front.events
+(ns clockwork-ui.events
   (:require
    [re-frame.core :refer [reg-event-db reg-cofx reg-event-fx inject-cofx path
                           trim-v after debug]]
    [cljs-time.core :as time]
    [cljs-time.coerce :as ft]
-   [clockwork-electron-front.db :refer [default-value]]
-   [clockwork-electron-front.utils :as u]
+   [clockwork-ui.db :refer [default-value]]
+   [clockwork-ui.utils :as u]
    ))
 
 ;; INTERCEPTORS ------------------------

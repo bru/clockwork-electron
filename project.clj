@@ -1,6 +1,6 @@
-(defproject clockwork-electron "0.1.2-SNAPSHOT"
+(defproject clockwork "0.1.2-SNAPSHOT"
   :description "A convenient time tracker"
-  :url "http://100starlings.github.io/clockwork-electron"
+  :url "http://100starlings.github.io/clockwork"
   :license {
     :name "Eclipse Public License"
     :url "http://www.eclipse.org/legal/epl-v10.html"}
@@ -97,7 +97,7 @@
           :pretty-print true
           :output-wrapper true}}
       :dev-front {
-        :source-paths ["src_front" "src_front_profile/clockwork_electron_front/dev"]
+        :source-paths ["src_ui" "src_ui_profile/clockwork_ui/dev"]
         :incremental true
         :jar true
         :assert true

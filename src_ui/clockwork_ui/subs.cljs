@@ -1,4 +1,4 @@
-(ns clockwork-electron-front.subs
+(ns clockwork-ui.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [cljs-time.core :as time]))
 

@@ -1,4 +1,4 @@
-(ns clockwork-electron-front.db
+(ns clockwork-ui.db
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [cljs.nodejs :as nodejs]
