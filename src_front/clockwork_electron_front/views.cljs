@@ -6,6 +6,7 @@
             [cljs-time.coerce :as ft]
             [clockwork-electron-front.utils :as u]
             [re-frame.core :refer [subscribe dispatch]]
+            [cljs.pprint :refer [pprint]]
             ))
 
 (def Electron (nodejs/require "electron"))
@@ -208,7 +209,7 @@
       [:div.row.debug-db
        [:pre
         [:code.clojure
-         (with-out-str (cljs.pprint/pprint @db))]]])))
+         (with-out-str (pprint @db))]]])))
 
 (defn today []
   [:div.container
