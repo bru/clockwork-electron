@@ -213,6 +213,12 @@ $ lein descjop-once-dev      # build JavaScript for develop
 $ lein descjop-once-prod     # build JavaScript for production
 ```
 
+## Troubleshooting
+
+The enviroment includes cljs-devtools with custom formatters. These should let you 
+properly inspect cljs data structures from the devtool panel.
+Make sure "Settings -> Preferences -> Console -> Enable custom formatters" is checked.
+
 ## License
 
 Copyright ©  FIXME
