@@ -15,7 +15,7 @@
     [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
     [binaryage/devtools "0.9.2"]]
   :plugins [
-    [lein-cljsbuild "1.1.5"]
+    [lein-cljsbuild "1.1.5"  :exclusions [[org.clojure/clojure]]]
     [lein-externs "0.1.6"]
     [lein-shell "0.5.0"]
     [lein-figwheel "0.5.9" :exclusions [org.clojure/core.cache]]]
@@ -59,11 +59,11 @@
       ["cljsbuild" "once" "prod-main"]
       ["cljsbuild" "once" "prod-front"]]
     ;; electron packager for production
-    "descjop-uberapp-osx" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=darwin" "--arch=x64" "--electron-version=1.3.3"]
-    "descjop-uberapp-app-store" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=mas" "--arch=x64" "--electron-version=1.3.3"]
-    "descjop-uberapp-linux" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=linux" "--arch=x64" "--electron-version=1.3.3"]
-    "descjop-uberapp-win64" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=x64" "--electron-version=1.3.3"]
-    "descjop-uberapp-win32" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=ia32" "--electron-version=1.3.3"]}
+    "descjop-uberapp-osx" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=darwin" "--arch=x64" "--electron-version=1.6.2"]
+    "descjop-uberapp-app-store" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=mas" "--arch=x64" "--electron-version=1.6.2"]
+    "descjop-uberapp-linux" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=linux" "--arch=x64" "--electron-version=1.6.2"]
+    "descjop-uberapp-win64" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=x64" "--electron-version=1.6.2"]
+    "descjop-uberapp-win32" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=ia32" "--electron-version=1.6.2"]}
   :hooks [leiningen.cljsbuild]
   :cljsbuild {
     :builds {
@@ -157,7 +157,7 @@
           :pretty-print true
           :output-wrapper true}}
       :prod-front {
-        :source-paths ["src_front" "src_front_profile/clockwork_electron_front/prod"]
+        :source-paths ["src_front" "src_front_profile/clockwork_front/prod"]
         :incremental true
         :jar true
         :assert true
