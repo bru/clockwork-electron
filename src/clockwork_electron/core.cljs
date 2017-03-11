@@ -28,7 +28,7 @@
   ;; ready listener
   (.on app "ready"
        (fn []
-         (reset! *win* (BrowserWindow. (clj->js {:width 800 :height 600
+         (reset! *win* (BrowserWindow. (clj->js {:width 800 :height 800
                                                  :minWidth 400 :minHeight 400 })))
 
          ;; when no optimize comment out
