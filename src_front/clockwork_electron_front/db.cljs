@@ -14,9 +14,6 @@
 (def filepath (nodejs/require "path"))
 (def fs (nodejs/require "fs"))
 
-(defonce db (r/atom {:timeslips {}
-                     :clock nil}))
-
 (def default-value
   {:timeslips {}
    :clock nil})

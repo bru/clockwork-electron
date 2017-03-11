@@ -4,7 +4,7 @@
                           trim-v after debug]]
    [cljs-time.core :as time]
    [cljs-time.coerce :as ft]
-   [clockwork-electron-front.db :refer [db default-value]]
+   [clockwork-electron-front.db :refer [default-value]]
    [clockwork-electron-front.utils :as u]
    ))
 
