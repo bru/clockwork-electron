@@ -93,9 +93,7 @@
 (defn timeslip-duration []
   (let [clock (subscribe [:clock])]
     (fn [{:keys [active duration updated-at]}]
-      (let [
-            _ (.log js/console (str "Interval from: " updated-at " to: " (ft/to-string (time/now)) ))
-            elapsed-time (time/in-seconds (time/interval (ft/from-string updated-at) @clock))
+      (let [elapsed-time (time/in-seconds (time/interval (ft/from-string updated-at) @clock))
             duration (if active (+ duration elapsed-time) duration)]
         [:p.lead
          [:strong
