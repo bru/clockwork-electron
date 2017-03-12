@@ -78,7 +78,8 @@
  :toggle-timeslip
  (fn [db [_ id]]
    (let [{:keys [active updated-at duration] :as timeslip} (get-in db [:timeslips id])
-         elapsed-time (time/in-seconds (time/interval (ft/from-string updated-at) (time/now)))
+         elapsed-time (time/in-seconds (time/interval
+                                        (ft/from-string updated-at) (time/now)))
          duration (if active (+ duration elapsed-time) duration)
          new-timeslip (merge timeslip
                                {:duration duration

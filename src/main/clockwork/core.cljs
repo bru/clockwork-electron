@@ -3,13 +3,18 @@
 
 (def path (nodejs/require "path"))
 (def Electron (nodejs/require "electron"))
+(def app (.-app Electron))
 (def BrowserWindow (.-BrowserWindow Electron))
 #_ (def crash-reporter (.-crashReporter Electron))
 
-(def Os (nodejs/require "os"))
-
 (def *win* (atom nil))
-(def app (.-app Electron))
+(def darwin? (= (.-platform nodejs/process) "darwin"))
+
+(defn create-window []
+  (reset! *win* (BrowserWindow. (clj->js {:width 800 :height 600})))
+  (.loadURL @*win* (str "file://" (.resolve path (js* "__dirname") "../index.html")))
+  (.openDevTools (.-webContents @*win*))
+  (.on app "closed" (fn [] (reset! *win* nil))))
 
 (defn -main []
   ;; TODO setup crash reports server
@@ -22,11 +27,15 @@
 
   ;; window all closed listener
   (.on app "window-all-closed"
-       (fn [] (if (not= (.-platform nodejs/process) "darwin")
-                (.quit app))))
+       (fn [] (when-not darwin? (.quit app))))
+
+  ;; activate listener
+  (.on app "activate"
+       (fn [] (when darwin? (create-window))))
 
   ;; ready listener
-  (.on app "ready"
+  (.on app "ready" (fn [] (create-window)))
+  #_ (.on app "ready"
        (fn []
          (reset! *win* (BrowserWindow. (clj->js {:width 800 :height 800
                                                  :minWidth 400 :minHeight 400 })))
@@ -39,9 +48,6 @@
          (.on @*win* "closed" (fn [] (reset! *win* nil))))))
 
 (nodejs/enable-util-print!)
-
-;;; "Linux" or "Darwin" or "Windows_NT"
-(.log js/console (str "Start Clockwork application on " (.type Os) "."))
-
+(.log js/console "Clockwork has started!")
 
 (set! *main-cli-fn* -main)

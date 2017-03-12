@@ -46,7 +46,7 @@
 (re-frame/reg-cofx
  :read-clock
  (fn [cofx _]
-   "Get local time form system clock."
+   "Get local time from system clock"
    (let [now (time/now)]
      (assoc cofx :clock now))))
 

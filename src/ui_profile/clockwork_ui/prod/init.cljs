@@ -4,7 +4,7 @@
 
 (enable-console-print!)
 
-(defn start-descjop! []
+(defn start-clockwork! []
   (core/init! conf/setting))
 
-(start-descjop!)
+(start-clockwork!)

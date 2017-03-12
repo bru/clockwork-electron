@@ -10,9 +10,9 @@
 
 (fw/watch-and-reload
  :websocket-url   "ws://localhost:3449/figwheel-ws"
- :jsload-callback 'start-descjop!)
+ :jsload-callback 'start-clockwork!)
 
-(defn start-descjop! []
+(defn start-clockwork! []
   (core/init! conf/setting))
 
-(start-descjop!)
+(start-clockwork!)

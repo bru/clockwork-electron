@@ -9,180 +9,113 @@
     [org.clojure/clojurescript "1.9.473" :exclusions [org.apache.ant/ant]]
     [org.clojure/core.async "0.2.395"]
     [figwheel "0.5.9"]
-    [reagent "0.6.0"]
+    [reagent "0.6.1"]
     [re-frame "0.9.2"]
     [ring/ring-core "1.5.0"]
-    [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
+    [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]
     [binaryage/devtools "0.9.2"]]
   :plugins [
     [lein-cljsbuild "1.1.5"  :exclusions [[org.clojure/clojure]]]
     [lein-externs "0.1.6"]
     [lein-shell "0.5.0"]
     [lein-figwheel "0.5.9" :exclusions [org.clojure/core.cache]]]
-  :source-paths ["src_tools"]
+  :source-paths ["src/tools"]
+
+  ;; Configuration variables used by our own build processes.
+  :electron-version "1.6.2"
+  :electron-packager-version "^8.5.2"
+
   :aliases {
-    "descjop-help" ["new" "descjop" "help"]
-    "descjop-init" ["do"
-                    ["shell" "npm" "install"]
-                    ["shell" "grunt" "download-electron"]]
-    "descjop-init-win" [
+    "clockwork-init" [
       "do"
-      ["shell" "cmd.exe" "/c" "npm" "install"]
-      ["shell" "cmd.exe" "/c" "grunt" "download-electron"]]
-    "descjop-externs" [
+      ["shell" "scripts/setup.sh"
+       :project/name :project/description
+       :project/version :project/url
+       :project/electron-version
+       :project/electron-packager-version]
+      ["shell" "npm" "install"]]
+    "clockwork-externs-dev" [
       "do"
-      ["externs" "dev-main" "app/dev/js/externs.js"]
-      ["externs" "dev-front" "app/dev/js/externs_front.js"]
-      ["externs" "prod-main" "app/prod/js/externs.js"]
-      ["externs" "prod-front" "app/prod/js/externs_front.js"]]
-    "descjop-externs-dev" [
+      ["externs" "dev-main" ".out/dev/js/externs.js"]
+      ["externs" "dev-ui" ".out/dev/js/externs_ui.js"]]
+    "clockwork-externs-prod" [
       "do"
-      ["externs" "dev-main" "app/dev/js/externs.js"]
-      ["externs" "dev-front" "app/dev/js/externs_front.js"]]
-    "descjop-externs-prod" [
-      "do"
-      ["externs" "prod-main" "app/prod/js/externs.js"]
-      ["externs" "prod-front" "app/prod/js/externs_front.js"]]
-    "descjop-figwheel" ["trampoline" "figwheel" "dev-front"]
-    "descjop-once" [
+      ["externs" "prod-main" ".out/prod/js/externs.js"]
+      ["externs" "prod-ui" ".out/prod/js/externs_ui.js"]]
+    "clockwork-figwheel" ["trampoline" "figwheel" "dev-ui"]
+    "clockwork-once-dev" [
       "do"
       ["cljsbuild" "once" "dev-main"]
-      ["cljsbuild" "once" "dev-front"]
-      ["cljsbuild" "once" "prod-main"]
-      ["cljsbuild" "once" "prod-front"]]
-    "descjop-once-dev" [
+      ["cljsbuild" "once" "dev-ui"]
+      ["shell" "grunt" "generate-manifest" "--target=.out/dev"]
+      ["shell" "grunt" "copy-file" "--source=./src/main/hoist/dev.js" "--target=.out/dev/js/main.js"]
+      ["shell" "grunt" "copy-file" "--source=./src/ui/hoist/dev.html" "--target=.out/dev/index.html"]
+      ;; ["shell" "grunt" "symlink" "--source=./src/ui/public" "--target=.out/dev/public"]
+      ;; ["shell" "grunt" "symlink" "--source=.out/dev" "--target=resources/public"]
+      ]
+    "clockwork-once-prod" [
       "do"
-      ["cljsbuild" "once" "dev-main"]
-      ["cljsbuild" "once" "dev-front"]]
-    "descjop-once-prod" [
-      "do"
       ["cljsbuild" "once" "prod-main"]
-      ["cljsbuild" "once" "prod-front"]]
-    ;; electron packager for production
-    "descjop-uberapp-osx" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=darwin" "--arch=x64" "--electron-version=1.6.2"]
-    "descjop-uberapp-app-store" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=mas" "--arch=x64" "--electron-version=1.6.2"]
-    "descjop-uberapp-linux" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=linux" "--arch=x64" "--electron-version=1.6.2"]
-    "descjop-uberapp-win64" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=x64" "--electron-version=1.6.2"]
-    "descjop-uberapp-win32" ["shell" "cmd.exe" "/c" "electron-packager" "./app/prod" "{{name}}" "--platform=win32" "--arch=ia32" "--electron-version=1.6.2"]}
+      ["cljsbuild" "once" "prod-ui"]
+      ["shell" "grunt" "generate-manifest" "--target=.out/prod"]
+      ["shell" "grunt" "copy-file" "--source=./src/main/hoist/prod.js" "--target=.out/prod/js/main.js"]
+      ["shell" "grunt" "copy-file" "--source=./src/ui/hoist/prod.html" "--target=.out/prod/index.html"]
+      ;; ["shell" "grunt" "symlink" "--source=ui/public" "--target=.out/prod/public"]
+      ]
+
+    "clockwork-dist" ["shell" "scripts/package.sh"]}
+
   :hooks [leiningen.cljsbuild]
+  :clean-targets ^{:protect false} [".out" ".dist"]
+
   :cljsbuild {
     :builds {
       :dev-main {
-        :source-paths ["src"]
-        :incremental true
-        :jar true
-        :assert true
+        :source-paths ["src/main"]
         :compiler {
-          :output-to "app/dev/js/cljsbuild-main.js"
+          :output-to ".out/dev/js/electron-main.js"
           :externs [
-            "app/dev/js/externs.js"
+            ".out/dev/js/externs.js"
             "node_modules/closurecompiler-externs/path.js"
             "node_modules/closurecompiler-externs/process.js"]
-          ;; :warnings true
-          :elide-asserts true
           :target :nodejs
-
-          ;; no optimize compile (dev)
-          ;; :optimizations :none
-          ;; when no optimize uncomment
-          ;; :output-dir "app/dev/js/out"
-
-          ;; simple compile (dev)
           :optimizations :simple
-
-          ;; advanced compile (prod)
-          ;;:optimizations :advanced
-
-          ;;:source-map "app/dev/js/test.js.map"
-          :pretty-print true
           :output-wrapper true}}
-      :dev-front {
-        :source-paths ["src_ui" "src_ui_profile/clockwork_ui/dev"]
-        :incremental true
-        :jar true
-        :assert true
+      :dev-ui {
+        :source-paths ["src/ui" "src/ui_profile/clockwork_ui/dev"]
         :compiler {
-          :output-to "app/dev/js/front.js"
-          :externs ["app/dev/js/externs_front.js"]
-          ;; :warnings true
-          :elide-asserts true
-          ;; :target :nodejs
-
-          ;; when no optimize uncomment
-          :output-dir "app/dev/js/out"
-          ;; no optimize compile (dev)
+          :output-to ".out/dev/js/ui.js"
+          :externs [".out/dev/js/externs_ui.js"]
+          :output-dir ".out/dev/js/out"
           :optimizations :none
-
-          ;; simple compile (dev)
-          ;;:optimizations :simple
-
-          ;; advanced compile (prod)
-          ;;:optimizations :advanced
-
           :source-map true
           :source-map-timestamp true
-          :pretty-print true
           :output-wrapper true
-
-          :preloads [devtools.preload]
-          :external-config {
-            :devtools/config {:dont-detect-custom-formatters true}}}}
+          :preloads [devtools.preload]}}
       :prod-main {
-        :source-paths ["src"]
-        :incremental true
-        :jar true
-        :assert true
+        :source-paths ["src/main"]
         :compiler {
-          :output-to "app/prod/js/cljsbuild-main.js"
+          :output-to ".out/prod/js/cljsbuild-main.js"
           :externs [
-            "app/prod/js/externs.js"
+            ".out/prod/js/externs.js"
             "node_modules/closurecompiler-externs/path.js"
             "node_modules/closurecompiler-externs/process.js"]
-          ;; :warnings true
           :elide-asserts true
           :target :nodejs
-
-          ;; no optimize compile (dev)
-          ;;:optimizations :none
-          ;; when no optimize uncomment
-          :output-dir "app/prod/js/out-main"
-
-          ;; simple compile (dev)
+          :output-dir ".out/prod/js/out-main"
           :optimizations :simple
-
-          ;; advanced compile (prod)
-          ;;:optimizations :advanced
-
-          ;;:source-map "app/prod/js/test.js.map"
-          :pretty-print true
           :output-wrapper true}}
-      :prod-front {
-        :source-paths ["src_front" "src_front_profile/clockwork_front/prod"]
-        :incremental true
-        :jar true
-        :assert true
+      :prod-ui {
+        :source-paths ["src/ui" "src/ui_profile/clockwork_ui/prod"]
         :compiler {
-          :output-to "app/prod/js/front.js"
-          :externs ["app/prod/js/externs_front.js"]
-          ;; :warnings true
+          :output-to ".out/prod/js/ui.js"
+          :externs [".out/prod/js/externs_ui.js"]
           :elide-asserts true
-          ;; :target :nodejs
-
-          ;; no optimize compile (dev)
-          ;;:optimizations :none
-          ;; when no optimize uncomment
-          :output-dir "app/prod/js/out"
-
-          ;; simple compile (dev)
+          :output-dir ".out/prod/js/out"
           :optimizations :simple
-
-          ;; advanced compile (prod)
-          ;;:optimizations :advanced
-
-          ;;:source-map "app/prod/js/test.js.map"
-          :pretty-print true
           :output-wrapper true}}}}
   :figwheel {
+    :server-logfile ".out/dev/logs/figwheel-logfile.log"
     :http-server-root "public"
     :ring-handler figwheel-middleware/app
     :server-port 3449})

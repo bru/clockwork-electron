@@ -17,5 +17,9 @@ figwheel_server.log
 
 # let's ignore the `app` folder for now
 app/*
+.out
+.tmp
+.dist
+package.json
 
 TODOs.org
