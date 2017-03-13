@@ -6,8 +6,8 @@
     :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [
     [org.clojure/clojure "1.8.0"]
-    [org.clojure/clojurescript "1.9.473" :exclusions [org.apache.ant/ant]]
-    [org.clojure/core.async "0.2.395"]
+    [org.clojure/clojurescript "1.9.494" :exclusions [org.apache.ant/ant]]
+    ;; [org.clojure/core.async "0.3.441"]
     [figwheel "0.5.9"]
     [reagent "0.6.1"]
     [re-frame "0.9.2"]
