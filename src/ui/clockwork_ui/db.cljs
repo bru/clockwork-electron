@@ -2,6 +2,7 @@
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
             [cljs.nodejs :as nodejs]
+            [cljs.spec :as s]
             [cljs-time.core :as time]
             [cljs.reader :as edn]
             ))
@@ -13,6 +14,40 @@
 (def app (.-app remote))
 (def filepath (nodejs/require "path"))
 (def fs (nodejs/require "fs"))
+
+;; -- Spec --------------------------------------------------------------------
+;;
+;; This is a clojure.spec specification for the value in app-db. It is like a
+;; Schema. See: http://clojure.org/guides/spec
+;;
+;; The value in app-db should always match this spec. Only event handlers
+;; can change the value in app-db so, after each event handler
+;; has run, we re-check app-db for correctness (compliance with the Schema).
+;;
+;; How is this done? Look in events.cljs and you'll notice that all handers
+;; have an "after" interceptor which does the spec re-check.
+;;
+;; None of this is strictly necessary. It could be omitted. But we find it
+;; good practice.
+
+(s/def ::id string?)
+(s/def ::task string?)
+(s/def ::project string?)
+(s/def ::client string?)
+(s/def ::description string?)
+(s/def ::started-at string?)
+(s/def ::updated-at string?)
+(s/def ::stopped-at string?)
+(s/def ::timeslip
+  (s/keys :req-un [::id ::task ::client
+                   ::description ::project
+                   ::started-at
+                   ::updated-at
+                   ::stopped-at]))
+(s/def ::timeslips (s/map-of ::id ::timeslip))
+(s/def ::active-day time/date?)
+(s/def ::clock time/date?)
+(s/def ::db (s/keys :req-un [::clock ::active-day ::timeslips]))
 
 (def default-value
   {:timeslips {}
@@ -67,4 +102,5 @@
 (re-frame/reg-fx
  :timeslips->file
  (fn [[ timeslips active-day ]]
+   "Save the the timeslips for the week including the specified day"
    (save-timeslips timeslips active-day)))
