@@ -97,26 +97,25 @@
          [:strong
           (u/format-time duration true)]])))
 
-(defn text-input [timeslip attribute]
+(defn text-input [form attribute]
   [:div.form-group
    [:label.col-sm-2.control-label
     (s/capitalize (name attribute))]
    [:div.col-sm-10
     [:input.form-control
      {:type "text"
-      :value (get @timeslip attribute)
-      :on-change #(swap! timeslip assoc attribute (u/event-val %))}]]])
+      :value (get @form attribute)
+      :on-change #(swap! form assoc attribute (u/event-val %))}]]])
 
-(defn text-area [timeslip attribute]
+(defn text-area [form attribute]
   [:textarea.form-control
-   {:value (get @timeslip attribute)
-    :on-change #(swap! timeslip assoc attribute (u/event-val %))}])
+   {:value (get @form attribute)
+    :on-change #(swap! form assoc attribute (u/event-val %))}])
 
-(defn time-input [timeslip field]
-  (let [val (u/format-time (get @timeslip field))
-        on-change #(let [seconds (u/parse-duration-string (u/event-val %))]
-                     (when seconds
-                       (swap! timeslip assoc :duration seconds)))]
+(defn time-input [form attribute]
+  (let [val (u/format-time (get @form attribute))
+        on-change #(swap! form assoc attribute
+                          (u/parse-duration-string (u/event-val %)))]
     [:input.form-control
      {:type "text"
       :placeholder val
