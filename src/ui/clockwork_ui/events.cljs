@@ -28,16 +28,13 @@
  [(inject-cofx :read-clock)
   (inject-cofx :current-day)
   check-spec-interceptor]
- (fn [cofx event]
+ (fn [{:keys [db current-day clock]} _]
    "Initialise the app-db with the current clock and active day, then dispatch
     the load-timeslips event to load the timeslips into the app-db"
-   (let [db (:db cofx)
-         current-day (:current-day cofx)
-         clock (:clock cofx)]
-     {:db (assoc default-value
-                 :clock clock
-                 :active-day current-day)
-      :dispatch [:load-timeslips]})))
+   {:db (assoc default-value
+               :clock clock
+               :active-day current-day)
+    :dispatch [:load-timeslips]}))
 
 (reg-event-fx
  :update-clock
@@ -49,11 +46,9 @@
 
 (reg-event-fx
  :save-timeslips
- (fn [{:keys [db]} _]
+ (fn [{{:keys [timeslips active-day]} :db} _]
    "Invoke the timeslips->file side effect to save the timeslips in the app-db to file"
-   (let [timeslips (:timeslips db)
-         active-day (:active-day db)]
-     {:timeslips->file [timeslips active-day]})))
+   {:timeslips->file [timeslips active-day]}))
 
 (reg-event-fx
  :load-timeslips
@@ -95,21 +90,8 @@
 (reg-event-db
  :update-timeslip
  [check-spec-interceptor]
- (fn [db [_ timeslip]]
-   (let [{:keys [id started-at stopped-at duration]} timeslip
-         original (get-in db [:timeslips id])
-         original-duration (time/interval
-                            (ft/from-string (:started-at original))
-                            (time/now))
-         new-started-at (if stopped-at
-                          started-at
-                          (ft/to-string
-                           (time/minus
-                            (time/now) duration)))
-         new-stopped-at (if stopped-at
-                          (ft/to-string
-                           (time/plus
-                            (time/now) duration)))
+ (fn [db [_ {:keys [id] :as timeslip}]]
+   (let [original (get-in db [:timeslips id])
          new-timeslip (merge original (dissoc timeslip :duration))]
      (assoc-in db [:timeslips id] new-timeslip))))
 
@@ -136,11 +118,13 @@
 (reg-event-fx
  :add-timeslip
  [check-spec-interceptor]
- (fn [db [_ timeslip]]
+ (fn [{:keys [db]} [_ timeslip]]
    "Add a new timeslip to the app-db"
-   (let [id (str (time/now))
-         day (str (:active-day db))
+   (let [clock (:clock db)
+         id (str clock)
+         now (ft/to-string clock)
          new-timeslip (merge timeslip {:id id
-                                       :day day
-                                       :updated-at (ft/to-string (time/now))})]
-     (assoc-in db [:timeslips id] new-timeslip))))
+                                       :started-at now
+                                       :updated-at now})]
+     {:db (assoc-in db [:timeslips id] new-timeslip)
+      :dispatch [:stop-timeslips id]})))
