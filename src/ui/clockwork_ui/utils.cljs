@@ -1,4 +1,6 @@
-(ns clockwork-ui.utils)
+(ns clockwork-ui.utils
+  (:require [cljs-time.core :as time]
+            [cljs-time.coerce :as ft]))
 
 ;; generic javascript events helpers
 (defn event-val [event]
@@ -18,6 +20,11 @@
         minutes-string (if (< minutes 10) (str "0" minutes) (str minutes))
         seconds-string (if (< seconds 10) (str "0" seconds) (str seconds))]
     (str hours-string ":" minutes-string (if with-seconds (str ":" seconds-string)))))
+
+(defn timeslip-interval [{:keys [started-at stopped-at]} clock]
+  (let [interval-end (if stopped-at (ft/from-string stopped-at) clock)
+        interval-start (ft/from-string started-at)]
+    (time/interval interval-start interval-end)))
 
 (defn get-timestamp [clock]
   (let [now (.getTime clock)]
