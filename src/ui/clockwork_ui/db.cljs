@@ -39,11 +39,11 @@
 (s/def ::updated-at string?)
 (s/def ::stopped-at string?)
 (s/def ::timeslip
-  (s/keys :req-un [::id ::task ::client
-                   ::description ::project
+  (s/keys :req-un [::id
+                   ::description
                    ::started-at
-                   ::updated-at
-                   ::stopped-at]))
+                   ::updated-at]
+          :opt-un [::task ::client ::project ::stopped-at]))
 (s/def ::timeslips (s/map-of ::id ::timeslip))
 (s/def ::active-day time/date?)
 (s/def ::clock time/date?)
