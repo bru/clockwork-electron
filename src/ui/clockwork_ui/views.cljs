@@ -123,11 +123,13 @@
 
 (defn timeslip-row []
   (let [editing (r/atom false)]
-    (fn [timeslip]
+    (fn [timeslip clock]
        (if @editing
          ;; timeslip edit
-         (let [{:keys [id project client task description active duration]} timeslip
-               new-timeslip (r/atom timeslip)]
+         (let [{:keys [id stopped-at]} timeslip
+               active (not stopped-at)
+               duration (u/timeslip-interval timeslip clock)
+               new-timeslip (r/atom (assoc timeslip :duration duration))]
            [:tr {:id (str "timeslip-" id)}
             [:td
              [:form.form-horizontal
@@ -140,7 +142,7 @@
               [:div.col-sm-8
                (if (not active)
                  [time-input new-timeslip :duration]
-                 [timeslip-duration timeslip])]
+                 [timeslip-duration timeslip clock])]
               [:div.col-sm-4
                [toggle-button timeslip]]]
              [:div.col-md-6.col-lg-4.col-sm-12
@@ -173,7 +175,7 @@
             [:td
              [:div.col-md-6.col-lg-8.col-sm-12
               [:div.col-sm-8
-                [timeslip-duration timeslip]]
+                [timeslip-duration timeslip clock]]
               [:div.col-sm-4
                [toggle-button timeslip]]]
              [:div.col-md-6.col-lg-4.col-sm-12
@@ -184,10 +186,12 @@
                [:span {:class "sr-only"} "Edit Timeslip"]]]]])))))
 
 (defn timeslips-table []
-  (let [timeslips (subscribe [:active-day-timeslips])]
+  (let [timeslips (subscribe [:active-day-timeslips])
+        clock (subscribe [:clock])]
     (fn []
       (let [label-task ""
-            label-time ""]
+            label-time ""
+            clock @clock]
         [:div.row
          [:table.table.table-hover
           [:thead
@@ -197,7 +201,7 @@
           [:tbody
            (for [timeslip @timeslips]
              ^{:key (str "timeslip-row-" (:id timeslip))}
-             [timeslip-row timeslip]
+             [timeslip-row timeslip clock]
              )]]]))))
 
 (defn debug-db []
