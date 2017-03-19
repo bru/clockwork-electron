@@ -12,7 +12,7 @@ Please note that the instructions below are OSX specific, please adapt (and feel
 * node v0.12.x +
 * grunt v0.1.13 +
 
-### (if you don't install grunt yet.)
+### (if you don't have grunt installed yet.)
 
 ```
 $ npm install -g grunt-cli
