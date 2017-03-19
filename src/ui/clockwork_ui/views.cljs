@@ -67,8 +67,9 @@
          [:div.col-sm-8
           [new-timeslip-form]]]))))
 
-(defn toggle-button [{:keys [id active]}]
-  (let [icon-label (if active "Stop" "Start")
+(defn toggle-button [{:keys [id stopped-at]}]
+  (let [active (not stopped-at)
+        icon-label (if active "Stop" "Start")
         icon-class (if active "glyphicon-pause" "glyphicon-play")]
     [:button.btn.btn-default
      {:type "button"
