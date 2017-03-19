@@ -15,8 +15,7 @@
 
 (defn new-timeslip-form []
   (let [val (r/atom "")
-        new-timeslip (fn [] {:description @val :task "" :client ""
-                             :active true :duration 0})
+        new-timeslip (fn [] {:description @val})
         change #(do
                   (reset! val (u/event-val %)))
         save #(let [timeslip (new-timeslip)]
@@ -92,9 +91,11 @@
 
 (defn timeslip-duration []
   (let [clock (subscribe [:clock])]
-    (fn [{:keys [active duration updated-at]}]
-      (let [elapsed-time (time/in-seconds (time/interval (ft/from-string updated-at) @clock))
-            duration (if active (+ duration elapsed-time) duration)]
+    (fn [{:keys [started-at stopped-at]}]
+      (let [interval-end (if stopped-at (ft/from-string stopped-at) @clock)
+            interval-start (ft/from-string started-at)
+            duration (time/in-seconds
+                      (time/interval interval-start interval-end))]
         [:p.lead
          [:strong
           (u/format-time duration true)]]))))
