@@ -6,7 +6,6 @@
    [cljs-time.coerce :as ft]
    [cljs.spec :as s]
    [clockwork-ui.db :refer [default-value]]
-   [clockwork-ui.utils :as u]
    ))
 
 ;; INTERCEPTORS ------------------------
@@ -93,21 +92,6 @@
      {:db (assoc db :active-day day)
       :dispatch [:load-timeslips]})))
 
-;; (reg-event-db
-;;  :toggle-timeslip
-;;  [check-spec-interceptor]
-;;  (fn [db [_ id]]
-;;    (let [{:keys [active updated-at duration] :as timeslip} (get-in db [:timeslips id])
-;;          elapsed-time (time/in-seconds (time/interval
-;;                                         (ft/from-string updated-at) (time/now)))
-;;          duration (if active (+ duration elapsed-time) duration)
-;;          new-timeslip (merge timeslip
-;;                                {:duration duration
-;;                                 :updated-at (ft/to-string (time/now))
-;;                                 :active (not active)}
-;;                                )]
-;;      (assoc-in db [:timeslips id] new-timeslip))))
-
 (reg-event-db
  :update-timeslip
  [check-spec-interceptor]
@@ -137,6 +121,19 @@
    (update-in db [:timeslips] dissoc id)))
 
 (reg-event-db
+ :stop-timeslips
+ [check-spec-interceptor]
+ (fn [{:keys [timeslips clock] :as db} [_ id]]
+   (let [now (ft/to-string clock)
+         stop? (fn [[k ts]] (not (or (= k id) (:stopped-at ts))))
+         stop (fn [[k ts]] [k (assoc ts :stopped-at now :updated-at now)])
+         updated-timeslips (->> timeslips
+                                (filter stop?)
+                                (map stop)
+                                (into timeslips))]
+     (assoc db :timeslips updated-timeslips))))
+
+(reg-event-fx
  :add-timeslip
  [check-spec-interceptor]
  (fn [db [_ timeslip]]
