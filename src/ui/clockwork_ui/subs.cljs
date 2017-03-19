@@ -1,6 +1,7 @@
 (ns clockwork-ui.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]
-            [cljs-time.core :as time]))
+            [cljs-time.core :as time]
+            [cljs-time.coerce :as tc]))
 
 (reg-sub
  :db
@@ -25,13 +26,17 @@
 
 (reg-sub
  :active-day-timeslips
- (fn [query-v _]
-   [(subscribe [:timeslips])
-    (subscribe [:active-day])])
-
- (fn [[timeslips active-day] _]
-   (let [timeslips (if (nil? timeslips) [] (vals timeslips))]
+ :<- [:timeslips]
+ :<- [:active-day]
+ :<- [:clock]
+ (fn [[timeslips active-day clock] _]
+   (let [timeslips (if (nil? timeslips) [] (vals timeslips))
+         start-active (time/at-midnight (tc/from-date active-day))
+         end-active (time/plus start-active (time/seconds 86399))
+         day-interval (time/interval start-active end-active)]
      (filter #(time/overlaps?
-               (:started-at %) (:stopped-at %)
-               (start active-day) (end active-day))
+               (time/interval
+                (tc/from-string (:started-at %))
+                (or (tc/from-string (:stopped-at %)) clock))
+               day-interval)
              timeslips))))
