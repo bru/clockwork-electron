@@ -91,15 +91,11 @@
       (dispatch [:remove-timeslip id]))))
 
 (defn timeslip-duration []
-  (let [clock (subscribe [:clock])]
-    (fn [{:keys [started-at stopped-at]}]
-      (let [interval-end (if stopped-at (ft/from-string stopped-at) @clock)
-            interval-start (ft/from-string started-at)
-            duration (time/in-seconds
-                      (time/interval interval-start interval-end))]
+    (fn [timeslip clock]
+      (let [duration (time/in-seconds (u/timeslip-interval timeslip clock))]
         [:p.lead
          [:strong
-          (u/format-time duration true)]]))))
+          (u/format-time duration true)]])))
 
 (defn text-input [timeslip attribute]
   [:div.form-group
