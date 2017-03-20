@@ -67,16 +67,21 @@
          [:div.col-sm-8
           [new-timeslip-form]]]))))
 
-(defn toggle-button [{:keys [id stopped-at]}]
-  (let [active (not stopped-at)
-        icon-label (if active "Stop" "Start")
-        icon-class (if active "glyphicon-pause" "glyphicon-play")]
-    [:button.btn.btn-default
-     {:type "button"
-      :on-click #(dispatch [:toggle-timeslip id])}
-     [:span {:class (str "glyphicon " icon-class)
-             :aria-hidden "true"}]
-     [:span {:class "sr-only"} icon-label]] ))
+(defn start-button [timeslip]
+  [:button.btn.btn-default
+   {:type "button"
+    :on-click #(dispatch [:add-timeslip (dissoc timeslip :stopped-at)])}
+   [:span {:class (str "glyphicon glyphicon-play")
+           :aria-hidden "true"}]
+   [:span {:class "sr-only"} "Start"]])
+
+(defn stop-button [{:keys [id]}]
+  [:button.btn.btn-default
+   {:type "button"
+    :on-click #(dispatch [:stop-timeslip id])}
+   [:span {:class (str "glyphicon glyphicon-pause")
+           :aria-hidden "true"}]
+   [:span {:class "sr-only"} "Stop"]])
 
 (defn remove-warning-dialog [id]
   (let [options {:type "question"
