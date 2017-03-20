@@ -126,69 +126,82 @@
       :placeholder val
       :on-change on-change}]))
 
+(defn timeslip-edit []
+  (let [new-timeslip (r/atom {})]
+    (fn [timeslip clock editing]
+      (let [{:keys [id stopped-at]} timeslip
+            active (not stopped-at)
+            duration (time/in-seconds (u/timeslip-interval timeslip clock))
+            _ (if (empty? @new-timeslip)
+                (reset! new-timeslip (assoc timeslip :duration duration)))]
+        [:tr {:id (str "timeslip-" id)}
+         [:td
+          [:form.form-horizontal
+           [text-input new-timeslip :client]
+           [text-input new-timeslip :project]
+           [text-input new-timeslip :task]
+           [text-area new-timeslip :description]]]
+         [:td
+          [:div.col-md-6.col-lg-8.col-sm-12
+           [:div.col-sm-8
+            (if active
+              [timeslip-duration timeslip clock]
+              [time-input new-timeslip :duration])]
+           [:div.col-sm-4
+            (if active
+              [stop-button timeslip]
+              [start-button timeslip])]]
+          [:div.col-md-6.col-lg-4.col-sm-12
+           [:div
+            [:button.btn.btn-default.col-sm-12
+             {:on-click #(do
+                           (dispatch [:update-timeslip @new-timeslip])
+                           (reset! editing false))}
+             [:span.glyphicon.glyphicon-save
+              {:aria-hidden "true"}]
+             [:span {:class "sr-only"} "Save Timeslip"]]
+            [:button.btn.btn-danger.col-sm-12
+             {:on-click #(remove-warning-dialog id)}
+             [:span.glyphicon.glyphicon-remove
+              {:aria-hidden "true"}]
+             [:span {:class "sr-only"} "Remove Timeslip"]]]]]]))))
+
+(defn timeslip-show [timeslip clock editing]
+  (let [{:keys [id project client task description stopped-at]} timeslip
+        active (not stopped-at)
+        project-html (if-not (s/blank? project) [:strong project])
+        client-html (if-not (s/blank? client) (str " (" client ")"))
+        task-html (if-not (s/blank? task) (str task " - ")) ]
+    [:tr {:id (str "timeslip-" (:id timeslip))}
+     [:td
+      [:div.timeslip
+       [:p.lead
+        project-html
+        client-html]
+       [:p task-html [:em description]]]]
+     [:td
+      [:div.col-md-6.col-lg-8.col-sm-12
+       [:div.col-sm-8
+        [timeslip-duration timeslip clock]]
+       [:div.col-sm-4
+        (if active
+          [stop-button timeslip]
+          [start-button timeslip])]]
+      [:div.col-md-6.col-lg-4.col-sm-12
+       [:button.btn.btn-default.col-sm-12
+        {:on-click #(reset! editing true)}
+        [:span.glyphicon.glyphicon-pencil
+         {:aria-hidden "true"}]
+        [:span {:class "sr-only"} "Edit Timeslip"]]]]]))
+
 (defn timeslip-row []
   (let [editing (r/atom false)]
     (fn [timeslip clock]
        (if @editing
          ;; timeslip edit
-         (let [{:keys [id stopped-at]} timeslip
-               active (not stopped-at)
-               duration (u/timeslip-interval timeslip clock)
-               new-timeslip (r/atom (assoc timeslip :duration duration))]
-           [:tr {:id (str "timeslip-" id)}
-            [:td
-             [:form.form-horizontal
-              [text-input new-timeslip :client]
-              [text-input new-timeslip :project]
-              [text-input new-timeslip :task]
-              [text-area new-timeslip :description]]]
-            [:td
-             [:div.col-md-6.col-lg-8.col-sm-12
-              [:div.col-sm-8
-               (if (not active)
-                 [time-input new-timeslip :duration]
-                 [timeslip-duration timeslip clock])]
-              [:div.col-sm-4
-               [toggle-button timeslip]]]
-             [:div.col-md-6.col-lg-4.col-sm-12
-              [:div
-               [:button.btn.btn-default.col-sm-12
-                {:on-click #(do
-                              (dispatch [:update-timeslip @new-timeslip])
-                              (reset! editing false))}
-                [:span.glyphicon.glyphicon-save
-                 {:aria-hidden "true"}]
-                [:span {:class "sr-only"} "Save Timeslip"]]
-               [:button.btn.btn-danger.col-sm-12
-                {:on-click #(remove-warning-dialog id)}
-                [:span.glyphicon.glyphicon-remove
-                 {:aria-hidden "true"}]
-                [:span {:class "sr-only"} "Remove Timeslip"]]]]]])
-
+         [timeslip-edit timeslip clock editing]
          ;; timeslip show
-         (let [{:keys [id project client task description]} timeslip
-               project-html (if-not (s/blank? project) [:strong project])
-               client-html (if-not (s/blank? client) (str " (" client ")"))
-               task-html (if-not (s/blank? task) (str task " - ")) ]
-           [:tr {:id (str "timeslip-" (:id timeslip))}
-            [:td
-             [:div.timeslip
-              [:p.lead
-               project-html
-               client-html]
-              [:p task-html [:em description]]]]
-            [:td
-             [:div.col-md-6.col-lg-8.col-sm-12
-              [:div.col-sm-8
-                [timeslip-duration timeslip clock]]
-              [:div.col-sm-4
-               [toggle-button timeslip]]]
-             [:div.col-md-6.col-lg-4.col-sm-12
-              [:button.btn.btn-default.col-sm-12
-               {:on-click #(reset! editing true)}
-               [:span.glyphicon.glyphicon-pencil
-                {:aria-hidden "true"}]
-               [:span {:class "sr-only"} "Edit Timeslip"]]]]])))))
+         [timeslip-show timeslip clock editing]))))
 
 (defn timeslips-table []
   (let [timeslips (subscribe [:active-day-timeslips])
