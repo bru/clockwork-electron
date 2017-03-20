@@ -90,9 +90,17 @@
 (reg-event-db
  :update-timeslip
  [check-spec-interceptor]
- (fn [db [_ {:keys [id] :as timeslip}]]
+ (fn [{:keys [clock] :as db}
+      [_ {:keys [id started-at stopped-at duration] :as timeslip}]]
    (let [original (get-in db [:timeslips id])
-         new-timeslip (merge original (dissoc timeslip :duration))]
+         new-start (ft/to-string
+                    (time/minus
+                     (ft/from-string stopped-at) (time/seconds duration)))
+         updated-at (ft/to-string clock)
+         new-timeslip (merge original
+                             (dissoc timeslip :duration)
+                             {:started-at new-start
+                              :updated-at updated-at})]
      (assoc-in db [:timeslips id] new-timeslip))))
 
 (reg-event-db
