@@ -123,6 +123,12 @@
                                 (into timeslips))]
      (assoc db :timeslips updated-timeslips))))
 
+(reg-event-db
+ :stop-timeslip
+ [check-spec-interceptor]
+ (fn [{:keys [clock] :as db} [_ id]]
+   (assoc-in db [:timeslips id :stopped-at] (ft/to-string clock))))
+
 (reg-event-fx
  :add-timeslip
  [check-spec-interceptor]
