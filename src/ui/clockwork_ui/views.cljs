@@ -13,6 +13,30 @@
 (def remote (.-remote Electron))
 (def dialog (.-dialog remote))
 
+(defn text-input [form attribute]
+  [:div.form-group
+   [:label.col-sm-2.control-label
+    (s/capitalize (name attribute))]
+   [:div.col-sm-10
+    [:input.form-control
+     {:type "text"
+      :value (get @form attribute)
+      :on-change #(swap! form assoc attribute (u/event-val %))}]]])
+
+(defn text-area [form attribute]
+  [:textarea.form-control
+   {:value (get @form attribute)
+    :on-change #(swap! form assoc attribute (u/event-val %))}])
+
+(defn time-input [form attribute]
+  (let [val (u/format-time (get @form attribute))
+        on-change #(swap! form assoc attribute
+                          (u/parse-duration-string (u/event-val %)))]
+    [:input.form-control
+     {:type "text"
+      :placeholder val
+      :on-change on-change}]))
+
 (defn new-timeslip-form []
   (let [val (r/atom "")
         new-timeslip (fn [] {:description @val})
@@ -102,29 +126,6 @@
          [:strong
           (u/format-time duration true)]])))
 
-(defn text-input [form attribute]
-  [:div.form-group
-   [:label.col-sm-2.control-label
-    (s/capitalize (name attribute))]
-   [:div.col-sm-10
-    [:input.form-control
-     {:type "text"
-      :value (get @form attribute)
-      :on-change #(swap! form assoc attribute (u/event-val %))}]]])
-
-(defn text-area [form attribute]
-  [:textarea.form-control
-   {:value (get @form attribute)
-    :on-change #(swap! form assoc attribute (u/event-val %))}])
-
-(defn time-input [form attribute]
-  (let [val (u/format-time (get @form attribute))
-        on-change #(swap! form assoc attribute
-                          (u/parse-duration-string (u/event-val %)))]
-    [:input.form-control
-     {:type "text"
-      :placeholder val
-      :on-change on-change}]))
 
 (defn timeslip-edit []
   (let [new-timeslip (r/atom {})]
