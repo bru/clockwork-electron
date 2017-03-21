@@ -25,23 +25,18 @@
    (:clock db)))
 
 (reg-sub
- :midnight
- (fn [db _]
-   (time/plus (time/at-midnight (:clock db)) (time/seconds 86399))))
-
-(reg-sub
  :active-day-timeslips
  :<- [:timeslips]
  :<- [:active-day]
- :<- [:midnight]
- (fn [[timeslips active-day midnight] _]
+ (fn [[timeslips active-day] _]
    (let [timeslips (if (nil? timeslips) [] (vals timeslips))
          start-active (time/at-midnight (tc/from-date active-day))
          end-active (time/plus start-active (time/seconds 86399))
          day-interval (time/interval start-active end-active)]
-     (filter #(time/overlaps?
-               (time/interval
-                (tc/from-string (:started-at %))
-                (or (tc/from-string (:stopped-at %)) midnight))
-               day-interval)
+     (filter #(or (not (:stopped-at %))
+                  (time/overlaps?
+                   (time/interval
+                    (tc/from-string (:started-at %))
+                    (tc/from-string (:stopped-at %)))
+                   day-interval))
              timeslips))))
