@@ -93,9 +93,11 @@
  (fn [{:keys [clock] :as db}
       [_ {:keys [id started-at stopped-at duration] :as timeslip}]]
    (let [original (get-in db [:timeslips id])
-         new-start (ft/to-string
-                    (time/minus
-                     (ft/from-string stopped-at) (time/seconds duration)))
+         new-start (if duration
+                     (ft/to-string
+                      (time/minus
+                       (ft/from-string stopped-at) (time/seconds duration)))
+                     started-at)
          updated-at (ft/to-string clock)
          new-timeslip (merge original
                              (dissoc timeslip :duration)
