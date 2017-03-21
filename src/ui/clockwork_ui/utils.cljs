@@ -21,10 +21,10 @@
         seconds-string (if (< seconds 10) (str "0" seconds) (str seconds))]
     (str hours-string ":" minutes-string (if with-seconds (str ":" seconds-string)))))
 
-(defn timeslip-interval [{:keys [started-at stopped-at]} clock]
-  (let [interval-end (if stopped-at (ft/from-string stopped-at) clock)
+(defn timeslip-seconds [{:keys [started-at stopped-at]} clock]
+  (let [interval-end (or clock (ft/from-string stopped-at))
         interval-start (ft/from-string started-at)]
-    (time/interval interval-start interval-end)))
+    (time/in-seconds (time/interval interval-start interval-end))))
 
 (defn get-timestamp [clock]
   (let [now (.getTime clock)]

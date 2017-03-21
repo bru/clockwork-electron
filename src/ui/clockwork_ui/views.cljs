@@ -120,21 +120,35 @@
       (dispatch [:remove-timeslip id]))))
 
 (defn timeslip-duration []
-    (fn [timeslip clock]
-      (let [duration (time/in-seconds (u/timeslip-interval timeslip clock))]
+  (fn [timeslip]
+    (let [duration (u/timeslip-seconds timeslip nil)]
+      [:p.lead
+       [:strong
+        (u/format-time duration true)]])))
+
+(defn timeslip-clock []
+  (let [clock (subscribe [:clock])]
+    (fn [timeslip]
+      (let [duration (u/timeslip-seconds timeslip @clock)]
         [:p.lead
          [:strong
-          (u/format-time duration true)]])))
+          (u/format-time duration true)]]))))
 
+(defn timeslip-clock-edit []
+  (let [clock (subscribe [:clock])]
+    (fn [timeslip]
+      (let [duration (u/timeslip-seconds @timeslip @clock)
+            _ (if-not (:duration @timeslip)
+                (swap! timeslip assoc :duration duration))]
+        (time-input timeslip :duration)))))
 
 (defn timeslip-edit []
   (let [new-timeslip (r/atom {})]
-    (fn [timeslip clock editing]
+    (fn [timeslip editing]
       (let [{:keys [id stopped-at]} timeslip
-            active (not stopped-at)
-            duration (time/in-seconds (u/timeslip-interval timeslip clock))
+            active? (not stopped-at)
             _ (if (empty? @new-timeslip)
-                (reset! new-timeslip (assoc timeslip :duration duration)))]
+                          (reset! new-timeslip timeslip))]
         [:tr {:id (str "timeslip-" id)}
          [:td
           [:form.form-horizontal
@@ -145,11 +159,11 @@
          [:td
           [:div.col-md-6.col-lg-8.col-sm-12
            [:div.col-sm-8
-            (if active
-              [timeslip-duration timeslip clock]
-              [time-input new-timeslip :duration])]
+            (if active?
+              [timeslip-clock timeslip]
+              [timeslip-clock-edit new-timeslip])]
            [:div.col-sm-4
-            (if active
+            (if active?
               [stop-button timeslip]
               [start-button timeslip])]]
           [:div.col-md-6.col-lg-4.col-sm-12
@@ -167,9 +181,9 @@
               {:aria-hidden "true"}]
              [:span {:class "sr-only"} "Remove Timeslip"]]]]]]))))
 
-(defn timeslip-show [timeslip clock editing]
+(defn timeslip-show [timeslip editing]
   (let [{:keys [id project client task description stopped-at]} timeslip
-        active (not stopped-at)
+        active? (not stopped-at)
         project-html (if-not (s/blank? project) [:strong project])
         client-html (if-not (s/blank? client) (str " (" client ")"))
         task-html (if-not (s/blank? task) (str task " - ")) ]
@@ -183,9 +197,12 @@
      [:td
       [:div.col-md-6.col-lg-8.col-sm-12
        [:div.col-sm-8
-        [timeslip-duration timeslip clock]]
+        (if active?
+          [timeslip-clock timeslip]
+          [timeslip-duration timeslip]
+          )]
        [:div.col-sm-4
-        (if active
+        (if active?
           [stop-button timeslip]
           [start-button timeslip])]]
       [:div.col-md-6.col-lg-4.col-sm-12
@@ -197,20 +214,18 @@
 
 (defn timeslip-row []
   (let [editing (r/atom false)]
-    (fn [timeslip clock]
+    (fn [timeslip]
        (if @editing
          ;; timeslip edit
-         [timeslip-edit timeslip clock editing]
+         [timeslip-edit timeslip editing]
          ;; timeslip show
-         [timeslip-show timeslip clock editing]))))
+         [timeslip-show timeslip editing]))))
 
 (defn timeslips-table []
-  (let [timeslips (subscribe [:active-day-timeslips])
-        clock (subscribe [:clock])]
+  (let [timeslips (subscribe [:active-day-timeslips])]
     (fn []
       (let [label-task ""
-            label-time ""
-            clock @clock]
+            label-time ""]
         [:div.row
          [:table.table.table-hover
           [:thead
@@ -220,7 +235,7 @@
           [:tbody
            (for [timeslip @timeslips]
              ^{:key (str "timeslip-row-" (:id timeslip))}
-             [timeslip-row timeslip clock]
+             [timeslip-row timeslip]
              )]]]))))
 
 (defn debug-db []
