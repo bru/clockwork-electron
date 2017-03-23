@@ -10,9 +10,6 @@
 (defonce timeslips-updater
   (js/setInterval #(dispatch [:update-clock]) 1000))
 
-(defonce timeslips-saver
-  (js/setInterval #(dispatch [:save-timeslips]) 10000))
-
 (defn root-component [env]
   [views/page env])
 
