@@ -50,6 +50,7 @@
 ;; --- Navigation ---
 
 (defn navigation []
+  (fn [panel]
   [:nav {:class "navbar navbar-default navbar-fixed-top"}
    [:div {:class "container"}
     [:div {:class "navbar-header"}
@@ -63,32 +64,35 @@
      [:a {:class "navbar-brand" :href "#"} "ClockWork"]]
     [:div {:id "navbar" :class "navbar-collapse collapse"}
      [:ul {:class "nav navbar-nav"}
-      [:li {:class "active"}
-       [:a {:class "item" :href "#"} "My Work"]]
-      [:li {:class "disabled"}
-       [:a {:href "#"} "Projects"]]
+      [:li {:class (if (= panel "timeslips") "active")}
+       [:a {:class "item" :href "#"
+            :on-click #(dispatch [:goto-timeslips])} "My Work"]]
+      [:li {:class (if (= panel "projects") "active")}
+       [:a {:href "#"
+            :on-click #(dispatch [:goto-projects]) } "Projects"]]
       #_ [:li {:class "disabled"}
           [:a {:href "#"} "Reports"]]
       #_ [:li {:class "disabled"}
           [:a {:href "#"} "Manage"]]]
      [:ul {:class "nav navbar-nav navbar-right"}
       #_ [:li {:class "disabled"}
-       [:a {:href "#"} "Settings"]]]]]])
+       [:a {:href "#"} "Settings"]]]]]]))
 
 ;; --- Timeslips view components ---
 
 (defn timeslip-duration []
   (fn [timeslip]
     (let [duration (u/timeslip-seconds timeslip nil)]
+      [:p.lead
       [:strong
-       (u/format-time duration true)])))
+       (u/format-time duration true)]])))
 
 (defn timeslip-clock []
   (let [clock (subscribe [:clock])]
     (fn [timeslip]
       (let [duration (u/timeslip-seconds timeslip @clock)]
-        [:strong
-         (u/format-time duration true)]))))
+        [:h2
+          (u/format-time duration true)]))))
 
 (defn timeslip-clock-edit []
   (let [clock (subscribe [:clock])]
@@ -134,15 +138,15 @@
         client-html (if-not (s/blank? client) (str " (" client ")"))
         task-html (if-not (s/blank? task) (str task " - "))]
     [:div.running-timeslip
-     [:div.col-sm-7
+     [:div.col-xs-6.col-sm-7
       [:p.lead
        project-html
        client-html]
       [:p task-html [:em description]]]
-     [:div.col-sm-3
+     [:div.col-xs-6.col-sm-3.text-right
       [timeslip-clock timeslip]]
-     [:div.col-sm-2
-      [:button.btn.btn-danger.btn-lg.col-xs-12.col-sm-12
+     [:div.col-xs-12.col-sm-2
+      [:button.btn.btn-danger.navbar-btn.btn-lg.col-xs-12.col-sm-12
        {:type "button" :on-click #(dispatch [:stop-timeslip id])}
        [:span {:class (str "glyphicon glyphicon-stop")
                :aria-hidden "true"}]
@@ -163,12 +167,12 @@
             month-number (- (time/month @date) 1)
             month (nth u/months month-number)
             day (time/day @date)]
-        [:div.row
-         [:div.col-sm-6
+        [:div
+         [:div.col-xs-6.col-sm-6
           [:h2 (str weekday " ")
            [:small (str day " " month)]]]
-         [:div.col-sm-6
-          [:div.btn-group.navbar-btn.navbar-right {:role "group"}
+         [:div.col-xs-6.col-sm-6.text-right
+          [:div.btn-group.navbar-btn {:role "group"}
            [:button.btn.btn-default.navbar-btn
             {:type "button"
              :on-click #(dispatch [:goto-previous-day])}
@@ -286,19 +290,62 @@
              ^{:key (str "timeslip-row-" (:id timeslip))}
              [timeslip-row timeslip])]]]))))
 
-(defn today [env]
-  [:div.container
+(defn today []
+  [:div.today
    [head-row]
-   [timeslips-table]
-   (when (= "dev" env)
-     [debug-db])])
+   [timeslips-table]])
+
+;; --- Projects view components
+
+(defn project-show [{:keys [name client tasks] :as project}]
+  [:tr {:id (str "project-" (:client project) "-" (:name project))}
+   [:td client]
+   [:td name]
+   [:td (s/join ", " tasks)]
+   [:td ]])
+
+(defn project-row []
+  (let [editing (r/atom false)]
+    (fn [project]
+      [project-show project])))
+
+(defn projects-table []
+  (let [projects (subscribe [:projects])]
+    (fn []
+      [:div.row
+       [:table.table.table-hover
+        [:thead
+         [:tr
+          [:th.col-sm-3 "Client"]
+          [:th.col-sm-3 "Project"]
+          [:th.col-sm-3 "Tasks"]
+          [:th.col-sm-3 " "]]]
+        [:tbody
+         (for [{:keys [client name] :as project} @projects]
+           ^{:key (str "project-row-" client "-" name)}
+           [project-row project])]]])))
+
+;; --- Panels ---
+
+(defn timeslips-panel []
+  [:div.timeslips-panel
+   [running-timer]
+   [today]])
+
+(defn projects-panel []
+  [:div.projects-panel
+   [projects-table]])
 
 ;; --- Page ---
 
 (defn page [env]
-  [:div {:class "page"}
-   [navigation]
-   [running-timer]
-   [today env]])
+  (let [panel (subscribe [:panel])]
+  [:div.container {:class "page"}
+   [navigation @panel]
+   (condp = @panel
+     "timeslips" [timeslips-panel]
+     "projects" [projects-panel])
+   (when (= "dev" env)
+     [debug-db])]))
 
 

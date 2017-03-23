@@ -28,14 +28,17 @@
  [(inject-cofx :read-clock)
   (inject-cofx :current-day)
   (inject-cofx :running-timeslip)
+  (inject-cofx :projects)
   check-spec-interceptor]
- (fn [{:keys [db current-day clock running-timeslip]} _]
+ (fn [{:keys [db current-day clock running-timeslip projects]} _]
    "Initialise the app-db with the current clock and active day, then dispatch
     the load-timeslips event to load the timeslips into the app-db"
    {:db (-> default-value
             (assoc :clock clock
-                   :active-day current-day)
-            (cond-> running-timeslip (assoc :running-timeslip running-timeslip)))
+                   :active-day current-day
+                   :panel "timeslips")
+            (cond-> running-timeslip (assoc :running-timeslip running-timeslip))
+            (cond-> projects (assoc :projects projects)))
     :dispatch [:load-timeslips]}))
 
 (reg-event-fx
@@ -45,6 +48,20 @@
  (fn [{:keys [db clock]} _]
    "Tic-tac, this event updates the clock in the app-db"
    {:db (assoc db :clock clock)}))
+
+(reg-event-db
+ :goto-timeslips
+ [check-spec-interceptor]
+ (fn [db _]
+   "Set timeslips as the active panel"
+   (assoc db :panel "timeslips")))
+
+(reg-event-db
+ :goto-projects
+ [check-spec-interceptor]
+ (fn [db _]
+   "Set projects as the active panel"
+   (assoc db :panel "projects")))
 
 (reg-event-fx
  :save-timeslips

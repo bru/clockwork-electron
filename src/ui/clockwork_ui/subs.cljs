@@ -30,6 +30,16 @@
    (:clock db)))
 
 (reg-sub
+ :panel
+ (fn [db _]
+   (:panel db)))
+
+(reg-sub
+ :projects
+ (fn [db _]
+   (:projects db)))
+
+(reg-sub
  :active-day-timeslips
  :<- [:timeslips]
  :<- [:active-day]

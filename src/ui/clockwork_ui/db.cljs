@@ -54,8 +54,15 @@
 (s/def ::timeslips (s/map-of ::id ::timeslip))
 (s/def ::active-day time/date?)
 (s/def ::clock time/date?)
-(s/def ::db (s/keys :req-un [::clock ::active-day ::timeslips]
-                    :opt-un [::running-timeslip]))
+(s/def ::panel string?) ;; should be (or "timeslips" "projects")
+(s/def ::name string?)
+(s/def ::tasks (s/coll-of ::task))
+(s/def ::client-project (s/keys :req-un [::client
+                                         ::name
+                                         ::tasks]))
+(s/def ::projects (s/coll-of ::client-project))
+(s/def ::db (s/keys :req-un [::clock ::active-day ::timeslips ::panel]
+                    :opt-un [::running-timeslip ::projects]))
 
 (def default-value
   {:timeslips {}
@@ -104,6 +111,18 @@
       (.unlink fs running-file))
     (catch js/Error e nil)))
 
+(def projects-file
+  (let [data-path (.getPath app "userData")
+        filename "projects.edn"]
+    (.resolve filepath data-path filename)))
+
+(defn load-projects []
+  "Load project data"
+  (let [projects-data (try
+                        (.readFileSync fs projects-file)
+                        (catch js/Error e nil))]
+    (edn/read-string (str (if (nil? projects-data) nil projects-data)))))
+
 ;; CO-EFFECTS --------------------------
 
 (re-frame/reg-cofx
@@ -133,6 +152,13 @@
    "Get the currently running timeslip, if any"
    (let [timeslip (load-running)]
      (assoc cofx :running-timeslip timeslip))))
+
+(re-frame/reg-cofx
+ :projects
+ (fn [cofx _]
+   "Load the clients / projects / tasks data"
+   (let [projects (load-projects)]
+     (assoc cofx :projects projects))))
 
 (re-frame/reg-fx
  :timeslips->file
