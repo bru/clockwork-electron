@@ -4,7 +4,6 @@
              [clockwork-ui.db]
              [clockwork-ui.events]
              [clockwork-ui.subs]
-             [clockwork-ui.navigation :as navigation]
              [clockwork-ui.views :as views]
              ))
 
@@ -15,9 +14,7 @@
   (js/setInterval #(dispatch [:save-timeslips]) 10000))
 
 (defn root-component [env]
-  [:div {:class "page"}
-   [navigation/main env]
-   [views/today env]])
+  [views/page env])
 
 (defn mount-root [setting]
   (let [env (:my-env setting)]

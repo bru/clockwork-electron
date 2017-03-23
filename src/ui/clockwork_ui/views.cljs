@@ -13,6 +13,8 @@
 (def remote (.-remote Electron))
 (def dialog (.-dialog remote))
 
+;; --- Common components ---
+
 (defn text-input [form attribute]
   [:div.form-group
    [:label.col-sm-2.control-label
@@ -37,6 +39,36 @@
       :placeholder val
       :on-change on-change}]))
 
+;; --- Navigation ---
+
+(defn navigation []
+  [:nav {:class "navbar navbar-default navbar-fixed-top"}
+   [:div {:class "container"}
+    [:div {:class "navbar-header"}
+     [:button {:type "button" :class "navbar-toggle collapsed" :data-toggle "collapse"
+               :data-target "#navbar" :aria-expanded "false" :aria-controls "navbar"}
+      [:span {:class "sr-only"} "Toggle navigation"]
+      [:span {:class "icon-bar"}]
+      [:span {:class "icon-bar"}]
+      [:span {:class "icon-bar"}]]
+
+     [:a {:class "navbar-brand" :href "#"} "ClockWork"]]
+    [:div {:id "navbar" :class "navbar-collapse collapse"}
+     [:ul {:class "nav navbar-nav"}
+      [:li {:class "active"}
+       [:a {:class "item" :href "#"} "My Work"]]
+      [:li {:class "disabled"}
+       [:a {:href "#"} "Projects"]]
+      #_ [:li {:class "disabled"}
+          [:a {:href "#"} "Reports"]]
+      #_ [:li {:class "disabled"}
+          [:a {:href "#"} "Manage"]]]
+     [:ul {:class "nav navbar-nav navbar-right"}
+      #_ [:li {:class "disabled"}
+       [:a {:href "#"} "Settings"]]]]]])
+
+;; --- Timeslips view components ---
+
 (defn new-timeslip-form []
   (let [val (r/atom "")
         new-timeslip (fn [] {:description @val})
@@ -48,21 +80,32 @@
                 (dispatch [:add-timeslip timeslip]))]
     (fn []
         [:form
-         [:div.col-xs-12.col-sm-12.col-md-8.col-lg-8
-          [:input.form-control.input-lg
-           {:id "new-timeslip-description"
-            :type "text"
-            :placeholder "What are you working on?"
-            ;; :autofocus true
-            :value @val
-            :on-change change
-            :on-key-down #(case (.-which %)
-                            13 (save %)
-                            nil)}]]
-         [:div.col-xs-12.col-sm-12.col-md-4.col-lg-4
-          [:button.btn.btn-success.btn-lg.col-xs-12.col-sm-12.col-md-12.col-lg-12
-           {:type "button"
-            :on-click save} "Start"]]])))
+         [:div.container
+          [:div.row
+           [:div.col-xs-12.col-sm-10
+            [:input.form-control.input-lg
+             {:id "new-timeslip-description"
+              :type "text"
+              :placeholder "What are you working on?"
+              ;; :autofocus true
+              :value @val
+              :on-change change
+              :on-key-down #(case (.-which %)
+                              13 (save %)
+                              nil)}]]
+           [:div.col-xs-12.col-sm-2
+            [:button.btn.btn-success.btn-lg.col-xs-12.col-sm-12.navbar-right
+             {:type "button" :on-click save}
+             [:span {:class (str "glyphicon glyphicon-play")
+                     :aria-hidden "true"}]
+             [:span {:class "sr-only"} "Start"]]]]]])))
+
+(defn active-timer []
+  [:div.row
+   [:div.col-sm-12
+    ;; TODO: add a subscription for active timeslip, then switch between form and
+    ;; `show` depending on the presence of an active timeslip.
+    [new-timeslip-form]]])
 
 (defn head-row []
   (let [date (subscribe [:active-day])]
@@ -72,27 +115,26 @@
             month (nth u/months month-number)
             day (time/day @date)]
         [:div.row
-         [:div.col-sm-4
+         [:div.col-sm-6
           [:h2 (str weekday " ")
-           [:small (str day " " month)]]
-          [:div.btn-group {:role "group"}
-           [:button.btn.btn-default
+           [:small (str day " " month)]]]
+         [:div.col-sm-6
+          [:div.btn-group.navbar-btn.navbar-right {:role "group"}
+           [:button.btn.btn-default.navbar-btn
             {:type "button"
              :on-click #(dispatch [:goto-previous-day])}
             [:span.glyphicon.glyphicon-backward {:aria-hidden true}]]
-           [:button.btn.btn-default
+           [:button.btn.btn-default.navbar-btn
             {:type "button"
              :on-click #(dispatch [:goto-today])}
             [:span "Today"]]
-           [:button.btn.btn-default
+           [:button.btn.btn-default.navbar-btn
             {:type "button"
              :on-click #(dispatch [:goto-next-day])}
-            [:span.glyphicon.glyphicon-forward {:aria-hidden true}]]]]
-         [:div.col-sm-8
-          [new-timeslip-form]]]))))
+            [:span.glyphicon.glyphicon-forward {:aria-hidden true}]]]]]))))
 
 (defn start-button [timeslip]
-  [:button.btn.btn-default
+  [:button.btn.btn-default.col-sm-4.col-xs-12
    {:type "button"
     :on-click #(dispatch [:add-timeslip (dissoc timeslip :stopped-at)])}
    [:span {:class (str "glyphicon glyphicon-play")
@@ -100,7 +142,7 @@
    [:span {:class "sr-only"} "Start"]])
 
 (defn stop-button [{:keys [id]}]
-  [:button.btn.btn-default
+  [:button.btn.btn-default.col-sm-4.col-xs-12
    {:type "button"
     :on-click #(dispatch [:stop-timeslip id])}
    [:span {:class (str "glyphicon glyphicon-pause")
@@ -195,18 +237,17 @@
         client-html]
        [:p task-html [:em description]]]]
      [:td
-      [:div.col-md-6.col-lg-8.col-sm-12
-       [:div.col-sm-8
+      [:div.col-md-8.col-lg-8.col-sm-12
+       [:div.col-sm-8.text-left
         (if active?
           [timeslip-clock timeslip]
           [timeslip-duration timeslip]
           )]
-       [:div.col-sm-4
         (if active?
           [stop-button timeslip]
-          [start-button timeslip])]]
-      [:div.col-md-6.col-lg-4.col-sm-12
-       [:button.btn.btn-default.col-sm-12
+          [start-button timeslip])]
+      [:div.col-md-4.col-lg-4.col-sm-12.col-xs-12
+       [:button.btn.btn-default.col-sm-12.col-xs-12
         {:on-click #(reset! editing true)}
         [:span.glyphicon.glyphicon-pencil
          {:aria-hidden "true"}]
@@ -235,8 +276,16 @@
           [:tbody
            (for [timeslip @timeslips]
              ^{:key (str "timeslip-row-" (:id timeslip))}
-             [timeslip-row timeslip]
-             )]]]))))
+             [timeslip-row timeslip])]]]))))
+
+(defn today [env]
+  [:div.container
+   [head-row]
+   [timeslips-table]
+   #_ (when (= "dev" env)
+     [debug-db])])
+
+;; --- Utility ---
 
 (defn debug-db []
   (let [db (subscribe [:db])]
@@ -246,9 +295,12 @@
         [:code.clojure
          (with-out-str (pprint @db))]]])))
 
-(defn today [env]
-  [:div.container
-   [head-row]
-   [timeslips-table]
-   (when (= "dev" env)
-     [debug-db])])
+;; --- Page ---
+
+(defn page [env]
+  [:div {:class "page"}
+   [navigation]
+   [active-timer]
+   [today env]])
+
+
