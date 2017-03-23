@@ -39,6 +39,14 @@
       :placeholder val
       :on-change on-change}]))
 
+(defn debug-db []
+  (let [db (subscribe [:db])]
+    (fn []
+      [:div.row.debug-db
+       [:pre
+        [:code.clojure
+         (with-out-str (pprint @db))]]])))
+
 ;; --- Navigation ---
 
 (defn navigation []
@@ -282,18 +290,8 @@
   [:div.container
    [head-row]
    [timeslips-table]
-   #_ (when (= "dev" env)
+   (when (= "dev" env)
      [debug-db])])
-
-;; --- Utility ---
-
-(defn debug-db []
-  (let [db (subscribe [:db])]
-    (fn []
-      [:div.row.debug-db
-       [:pre
-        [:code.clojure
-         (with-out-str (pprint @db))]]])))
 
 ;; --- Page ---
 
