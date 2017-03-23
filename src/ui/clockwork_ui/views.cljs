@@ -69,6 +69,27 @@
 
 ;; --- Timeslips view components ---
 
+(defn timeslip-duration []
+  (fn [timeslip]
+    (let [duration (u/timeslip-seconds timeslip nil)]
+      [:strong
+       (u/format-time duration true)])))
+
+(defn timeslip-clock []
+  (let [clock (subscribe [:clock])]
+    (fn [timeslip]
+      (let [duration (u/timeslip-seconds timeslip @clock)]
+        [:strong
+         (u/format-time duration true)]))))
+
+(defn timeslip-clock-edit []
+  (let [clock (subscribe [:clock])]
+    (fn [timeslip]
+      (let [duration (u/timeslip-seconds @timeslip @clock)
+            _ (if-not (:duration @timeslip)
+                (swap! timeslip assoc :duration duration))]
+        (time-input timeslip :duration)))))
+
 (defn new-timeslip-form []
   (let [val (r/atom "")
         new-timeslip (fn [] {:description @val})
@@ -100,12 +121,32 @@
                      :aria-hidden "true"}]
              [:span {:class "sr-only"} "Start"]]]]]])))
 
-(defn active-timer []
-  [:div.row
-   [:div.col-sm-12
-    ;; TODO: add a subscription for active timeslip, then switch between form and
-    ;; `show` depending on the presence of an active timeslip.
-    [new-timeslip-form]]])
+(defn show-running-timeslip [{:keys [id project client task description] :as timeslip}]
+  (let [project-html (if-not (s/blank? project) [:strong project])
+        client-html (if-not (s/blank? client) (str " (" client ")"))
+        task-html (if-not (s/blank? task) (str task " - "))]
+    [:div.running-timeslip
+     [:div.col-sm-7
+      [:p.lead
+       project-html
+       client-html]
+      [:p task-html [:em description]]]
+     [:div.col-sm-3
+      [timeslip-clock timeslip]]
+     [:div.col-sm-2
+      [:button.btn.btn-danger.btn-lg.col-xs-12.col-sm-12
+       {:type "button" :on-click #(dispatch [:stop-timeslip id])}
+       [:span {:class (str "glyphicon glyphicon-stop")
+               :aria-hidden "true"}]
+       [:span {:class "sr-only"} "Stop"]]]]))
+
+(defn running-timer []
+  (let [running-timeslip (subscribe [:running-timeslip])]
+    [:div.row
+     [:div.col-sm-12
+      (if @running-timeslip
+        [show-running-timeslip @running-timeslip]
+        [new-timeslip-form])]]))
 
 (defn head-row []
   (let [date (subscribe [:active-day])]
@@ -133,22 +174,6 @@
              :on-click #(dispatch [:goto-next-day])}
             [:span.glyphicon.glyphicon-forward {:aria-hidden true}]]]]]))))
 
-(defn start-button [timeslip]
-  [:button.btn.btn-default.col-sm-4.col-xs-12
-   {:type "button"
-    :on-click #(dispatch [:add-timeslip (dissoc timeslip :stopped-at)])}
-   [:span {:class (str "glyphicon glyphicon-play")
-           :aria-hidden "true"}]
-   [:span {:class "sr-only"} "Start"]])
-
-(defn stop-button [{:keys [id]}]
-  [:button.btn.btn-default.col-sm-4.col-xs-12
-   {:type "button"
-    :on-click #(dispatch [:stop-timeslip id])}
-   [:span {:class (str "glyphicon glyphicon-pause")
-           :aria-hidden "true"}]
-   [:span {:class "sr-only"} "Stop"]])
-
 (defn remove-warning-dialog [id]
   (let [options {:type "question"
                  :buttons ["Cancel" "Remove"]
@@ -161,36 +186,12 @@
     (if (= action 1)
       (dispatch [:remove-timeslip id]))))
 
-(defn timeslip-duration []
-  (fn [timeslip]
-    (let [duration (u/timeslip-seconds timeslip nil)]
-      [:p.lead
-       [:strong
-        (u/format-time duration true)]])))
-
-(defn timeslip-clock []
-  (let [clock (subscribe [:clock])]
-    (fn [timeslip]
-      (let [duration (u/timeslip-seconds timeslip @clock)]
-        [:p.lead
-         [:strong
-          (u/format-time duration true)]]))))
-
-(defn timeslip-clock-edit []
-  (let [clock (subscribe [:clock])]
-    (fn [timeslip]
-      (let [duration (u/timeslip-seconds @timeslip @clock)
-            _ (if-not (:duration @timeslip)
-                (swap! timeslip assoc :duration duration))]
-        (time-input timeslip :duration)))))
-
 (defn timeslip-edit []
   (let [new-timeslip (r/atom {})]
     (fn [timeslip editing]
       (let [{:keys [id stopped-at]} timeslip
-            active? (not stopped-at)
             _ (if (empty? @new-timeslip)
-                          (reset! new-timeslip timeslip))]
+                (reset! new-timeslip timeslip))]
         [:tr {:id (str "timeslip-" id)}
          [:td
           [:form.form-horizontal
@@ -199,25 +200,25 @@
            [text-input new-timeslip :task]
            [text-area new-timeslip :description]]]
          [:td
-          [:div.col-md-6.col-lg-8.col-sm-12
-           [:div.col-sm-8
-            (if active?
-              [timeslip-clock timeslip]
-              [timeslip-clock-edit new-timeslip])]
-           [:div.col-sm-4
-            (if active?
-              [stop-button timeslip]
-              [start-button timeslip])]]
-          [:div.col-md-6.col-lg-4.col-sm-12
+          [:div.col-md-8.col-lg-8.col-sm-12
+           [:div.col-xs-12.col-sm-12.col-md-8.col-lg-10
+            [timeslip-clock-edit new-timeslip]]
+           [:button.btn.btn-default.col-xs-12.col-sm-12.col-md-4.col-lg-2
+            {:type "button"
+             :on-click #(dispatch [:add-timeslip (dissoc timeslip :stopped-at)])}
+            [:span {:class (str "glyphicon glyphicon-play")
+                    :aria-hidden "true"}]
+            [:span {:class "sr-only"} "Start"]]]
+          [:div.col-xs-12.col-sm.12.col-md-4.col-lg-4.col-sm-12
            [:div
-            [:button.btn.btn-default.col-sm-12
+            [:button.btn.btn-default.col-xs-12
              {:on-click #(do
                            (dispatch [:update-timeslip @new-timeslip])
                            (reset! editing false))}
              [:span.glyphicon.glyphicon-save
               {:aria-hidden "true"}]
              [:span {:class "sr-only"} "Save Timeslip"]]
-            [:button.btn.btn-danger.col-sm-12
+            [:button.btn.btn-danger.col-xs-12
              {:on-click #(remove-warning-dialog id)}
              [:span.glyphicon.glyphicon-remove
               {:aria-hidden "true"}]
@@ -225,7 +226,6 @@
 
 (defn timeslip-show [timeslip editing]
   (let [{:keys [id project client task description stopped-at]} timeslip
-        active? (not stopped-at)
         project-html (if-not (s/blank? project) [:strong project])
         client-html (if-not (s/blank? client) (str " (" client ")"))
         task-html (if-not (s/blank? task) (str task " - ")) ]
@@ -238,16 +238,16 @@
        [:p task-html [:em description]]]]
      [:td
       [:div.col-md-8.col-lg-8.col-sm-12
-       [:div.col-sm-8.text-left
-        (if active?
-          [timeslip-clock timeslip]
-          [timeslip-duration timeslip]
-          )]
-        (if active?
-          [stop-button timeslip]
-          [start-button timeslip])]
+       [:div.col-sm-8.col-xs-12.col-lg-8
+        [timeslip-duration timeslip]]
+       [:button.btn.btn-default.col-sm-4.col-lg-4.col-xs-12
+        {:type "button"
+         :on-click #(dispatch [:add-timeslip (dissoc timeslip :stopped-at)])}
+        [:span {:class (str "glyphicon glyphicon-play")
+                :aria-hidden "true"}]
+        [:span {:class "sr-only"} "Start"]]]
       [:div.col-md-4.col-lg-4.col-sm-12.col-xs-12
-       [:button.btn.btn-default.col-sm-12.col-xs-12
+       [:button.btn.btn-default.col-md-12.col-sm-12.col-xs-12
         {:on-click #(reset! editing true)}
         [:span.glyphicon.glyphicon-pencil
          {:aria-hidden "true"}]
@@ -300,7 +300,7 @@
 (defn page [env]
   [:div {:class "page"}
    [navigation]
-   [active-timer]
+   [running-timer]
    [today env]])
 
 
