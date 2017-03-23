@@ -11,16 +11,20 @@
 (def darwin? (= (.-platform nodejs/process) "darwin"))
 
 (defn create-window []
-  (reset! *win* (BrowserWindow. (clj->js {:width 800 :height 600})))
+  (let [win-options (clj->js {:width 800 :height 600
+                              :minWidth 400 :minHeight 512})]
+  (reset! *win* (BrowserWindow. win-options))
+  ;; when no optimize comment out
   (.loadURL @*win* (str "file://" (.resolve path (js* "__dirname") "../index.html")))
+  ;; when no optimize uncomment
+  ;; (.loadURL @*win* (str "file://" (.resolve path (js* "__dirname") "../../../index.html")))
   (.openDevTools (.-webContents @*win*))
-  (.on app "closed" (fn [] (reset! *win* nil))))
+  (.on app "closed" (fn [] (reset! *win* nil)))))
 
 (defn -main []
   ;; TODO setup crash reports server
   #_(.start crash-reporter (clj->js {:companyName "100Starlings"
                                    :submitURL   "http://100starlings.com/"}))
-
   ;; error listener
   (.on nodejs/process "error"
        (fn [err] (.log js/console err)))
@@ -30,22 +34,11 @@
        (fn [] (when-not darwin? (.quit app))))
 
   ;; activate listener
-  (.on app "activate"
+  #_ (.on app "activate"
        (fn [] (when darwin? (create-window))))
 
   ;; ready listener
-  (.on app "ready" (fn [] (create-window)))
-  #_ (.on app "ready"
-       (fn []
-         (reset! *win* (BrowserWindow. (clj->js {:width 800 :height 800
-                                                 :minWidth 400 :minHeight 400 })))
-
-         ;; when no optimize comment out
-         (.loadURL @*win* (str "file://" (.resolve path (js* "__dirname") "../index.html")))
-         ;; when no optimize uncomment
-         ;; (.loadURL @*win* (str "file://" (.resolve path (js* "__dirname") "../../../index.html")))
-
-         (.on @*win* "closed" (fn [] (reset! *win* nil))))))
+  (.on app "ready" (fn [] (create-window))))
 
 (nodejs/enable-util-print!)
 (.log js/console "Clockwork has started!")
