@@ -50,6 +50,7 @@
       ["shell" "grunt" "generate-manifest" "--target=.out/dev"]
       ["shell" "grunt" "copy-file" "--source=./src/main/hoist/dev.js" "--target=.out/dev/js/main.js"]
       ["shell" "grunt" "copy-file" "--source=./src/ui/hoist/dev.html" "--target=.out/dev/index.html"]
+      ["shell" "grunt" "copy-file" "--source=./clkwrk.png" "--target=.out/dev/clkwrk.png"]
       ;; ["shell" "grunt" "symlink" "--source=./src/ui/public" "--target=.out/dev/public"]
       ;; ["shell" "grunt" "symlink" "--source=.out/dev" "--target=resources/public"]
       ]
@@ -60,6 +61,7 @@
       ["shell" "grunt" "generate-manifest" "--target=.out/prod"]
       ["shell" "grunt" "copy-file" "--source=./src/main/hoist/prod.js" "--target=.out/prod/js/main.js"]
       ["shell" "grunt" "copy-file" "--source=./src/ui/hoist/prod.html" "--target=.out/prod/index.html"]
+      ["shell" "grunt" "copy-file" "--source=./clkwrk.png" "--target=.out/prod/clkwrk.png"]
       ;; ["shell" "grunt" "symlink" "--source=ui/public" "--target=.out/prod/public"]
       ]
 

@@ -7,5 +7,5 @@ PRODUCT_DIR=$PROJECT_ROOT/.out/prod
 if [ ! -d "$PRODUCT_DIR" ]; then
     echo "ERROR: The product directory does not exist! $PRODUCT_DIR"
 else
-    $PROJECT_ROOT/node_modules/electron-packager/cli.js $PRODUCT_DIR --out=$PROJECT_ROOT/.dist
+    $PROJECT_ROOT/node_modules/electron-packager/cli.js $PRODUCT_DIR --out=$PROJECT_ROOT/.dist --icon=$PROJECT_ROOT/clkwrk.icns --overwrite
 fi
